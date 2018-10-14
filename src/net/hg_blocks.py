@@ -51,16 +51,15 @@ def bottleneck_block(bottom, num_out_channels, block_name):
         _skip = Conv2D(num_out_channels, kernel_size=(1,1), activation='relu', padding='same', name=block_name+'skip') (bottom)
 
     # residual: 3 conv blocks,  [num_out_channels/2  -> num_out_channels/2 -> num_out_channels]
-    _x = Conv2D(num_out_channels/2, kernel_size=(1,1), activation='relu', padding='same', name=block_name+'_conv_1x1_x1') (bottom)
+    _x = Conv2D(num_out_channels//2, kernel_size=(1,1), activation='relu', padding='same', name=block_name+'_conv_1x1_x1') (bottom)
     _x = BatchNormalization()(_x)
-    _x = Conv2D(num_out_channels/2, kernel_size=(3,3), activation='relu', padding='same', name=block_name+'_conv_3x3_x2') (_x)
+    _x = Conv2D(num_out_channels//2, kernel_size=(3,3), activation='relu', padding='same', name=block_name+'_conv_3x3_x2') (_x)
     _x = BatchNormalization()(_x)
     _x = Conv2D(num_out_channels, kernel_size=(1,1), activation='relu', padding='same', name=block_name+'_conv_1x1_x3') (_x)
     _x = BatchNormalization()(_x)
     _x = Add(name=block_name+'_residual')([_skip, _x])
 
     return _x
-
 
 def bottleneck_mobile(bottom, num_out_channels, block_name):
     # skip layer
@@ -70,9 +69,9 @@ def bottleneck_mobile(bottom, num_out_channels, block_name):
         _skip = SeparableConv2D(num_out_channels, kernel_size=(1,1), activation='relu', padding='same', name=block_name+'skip') (bottom)
 
     # residual: 3 conv blocks,  [num_out_channels/2  -> num_out_channels/2 -> num_out_channels]
-    _x = SeparableConv2D(num_out_channels/2, kernel_size=(1,1), activation='relu', padding='same', name=block_name+'_conv_1x1_x1') (bottom)
+    _x = SeparableConv2D(num_out_channels//2, kernel_size=(1,1), activation='relu', padding='same', name=block_name+'_conv_1x1_x1') (bottom)
     _x = BatchNormalization()(_x)
-    _x = SeparableConv2D(num_out_channels/2, kernel_size=(3,3), activation='relu', padding='same', name=block_name+'_conv_3x3_x2') (_x)
+    _x = SeparableConv2D(num_out_channels//2, kernel_size=(3,3), activation='relu', padding='same', name=block_name+'_conv_3x3_x2') (_x)
     _x = BatchNormalization()(_x)
     _x = SeparableConv2D(num_out_channels, kernel_size=(1,1), activation='relu', padding='same', name=block_name+'_conv_1x1_x3') (_x)
     _x = BatchNormalization()(_x)
