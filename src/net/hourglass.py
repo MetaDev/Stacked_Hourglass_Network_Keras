@@ -41,11 +41,10 @@ class HourglassNet(object):
                                     rot_flag=True, scale_flag=True, flip_flag=True)
         print(os.path.join(model_path, "csv_train_"+ str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
         csvlogger = CSVLogger(os.path.join(model_path, "csv_train_"+ str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
-        modelfile = os.path.join(model_path, 'weights_{epoch:02d}_{loss:.2f}.hdf5')
 
         checkpoint =  EvalCallBack(model_path)
 
-        xcallbacks = [ checkpoint]
+        xcallbacks = [csvlogger, checkpoint]
 
         self.model.fit_generator(generator=train_gen, steps_per_epoch=train_dataset.get_dataset_size()//batch_size,
                                  #validation_data=val_gen, validation_steps= val_dataset.get_dataset_size()//batch_size,
