@@ -29,7 +29,7 @@ def main_eval(model_json, model_weights, num_stack, num_class, matfile):
     valdata = MPIIDataGen("../../data/mpii/mpii_annotations.json", "../../data/mpii/images",
                           inres=(256, 256), outres=(64, 64), is_train=False)
 
-    print 'val data size', valdata.get_dataset_size()
+    print('val data size', valdata.get_dataset_size())
 
     valkps = np.zeros(shape=(valdata.get_dataset_size(), 16, 2), dtype=np.float)
 

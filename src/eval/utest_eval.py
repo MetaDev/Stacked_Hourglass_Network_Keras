@@ -17,15 +17,15 @@ from scipy.io import loadmat
 def main():
     model = create_hourglass_network(16, 2, (256, 256), (64, 64))
     model.summary()
-    print len(model.output_layers)
+    print(len(model.output_layers))
     plot_model(model, 'hg_s2.png', show_shapes=True)
     for layer in model.output_layers:
-        print layer.output_shape
+        print(layer.output_shape)
 
 def main_load_mat():
     predfile = os.path.join( '/home/yli150/pytorch-pose' ,'checkpoint/hg_s8_b1/preds_valid.mat')
     preds = loadmat(predfile)['preds']
-    print preds.shape, preds.dtype
+    print(preds.shape, preds.dtype)
 
 
 def view_predict_hmap(predout, show_raw=False):
@@ -66,7 +66,7 @@ def main_check_gt():
     total_valid, total_invalid = 0, 0
 
 
-    print 'val data size', valdata.get_dataset_size()
+    print('val data size', valdata.get_dataset_size())
 
     count = 0
     batch_size = 8
@@ -74,7 +74,7 @@ def main_check_gt():
 
         count += batch_size
         if count % (batch_size * 100) == 0:
-            print count, 'processed', total_valid, total_invalid
+            print(count, 'processed', total_valid, total_invalid)
 
         if count > valdata.get_dataset_size():
             break
@@ -84,7 +84,7 @@ def main_check_gt():
         total_valid += good
         total_invalid += bad
 
-    print total_valid, total_invalid,  total_valid * 1.0 / (total_valid + total_invalid)
+    print(total_valid, total_invalid,  total_valid * 1.0 / (total_valid + total_invalid))
 
 
 def main_test():
@@ -98,7 +98,7 @@ def main_test():
     total_good, total_fail = 0, 0
     threshold = 0.5
 
-    print 'val data size', valdata.get_dataset_size()
+    print('val data size', valdata.get_dataset_size())
 
     count = 0
     batch_size = 8
@@ -106,7 +106,7 @@ def main_test():
 
         count += batch_size
         if count % (batch_size*100) == 0:
-            print count, 'processed', total_good, total_fail
+            print(count, 'processed', total_good, total_fail)
 
         if count > valdata.get_dataset_size():
             break
@@ -118,7 +118,7 @@ def main_test():
         total_good += good
         total_fail += bad
 
-    print total_good, total_fail, threshold, total_good*1.0/(total_good + total_fail)
+    print(total_good, total_fail, threshold, total_good*1.0/(total_good + total_fail))
 
 if __name__ == '__main__':
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"

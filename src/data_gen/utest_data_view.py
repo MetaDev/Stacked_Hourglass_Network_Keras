@@ -45,7 +45,7 @@ def generate_gt_map(joints, sigma, outres):
 
 def view_crop_image(anno):
 
-    print anno.keys()
+    print(list(anno.keys()))
 
     img_paths = anno['img_paths']
     img_width = anno['img_width']
@@ -61,7 +61,7 @@ def view_crop_image(anno):
     outimg = data_process.crop(imgdata, center= center,  scale=anno['scale_provided'], res=(256, 256), rot=0)
     outimg_normalized = data_process.normalize(outimg)
  
-    print outimg.shape
+    print(outimg.shape)
 
     newjoints = data_process.transform_kp(np.array(anno['joint_self']), center, anno['scale_provided'], (64, 64), rot=0)
     #draw_joints(outimg_normalized, newjoints.tolist())
@@ -91,7 +91,7 @@ def view_crop_image(anno):
         orgpts[0:2] = data_process.transform(tpts, meta['center'], meta['scale'], res=[64, 64], invert=1, rot=0)
         tpbpts.append(orgpts)
 
-    print tpbpts
+    print(tpbpts)
 
     draw_joints(imgdata, np.array(tpbpts))
     scipy.misc.imshow(imgdata)
