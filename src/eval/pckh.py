@@ -16,7 +16,7 @@ def run_pckh(model_name, predfile):
     pa = [2, 3, 7, 7, 4, 5, 8, 9, 10, 0, 12, 13, 8, 8, 14, 15]
 
     dict = loadmat('../../data/mpii/detections_our_format.mat')
-    print dict.keys()
+    print(list(dict.keys()))
     dataset_joints = dict['dataset_joints']
     jnt_missing = dict['jnt_missing']
     pos_pred_src = dict['pos_pred_src']
@@ -80,6 +80,6 @@ def run_pckh(model_name, predfile):
     PCKh = np.ma.array(PCKh, mask=False)
     PCKh.mask[6:8] = True
     print("Model,  Head,   Shoulder, Elbow,  Wrist,   Hip ,     Knee  , Ankle ,  Mean")
-    print('{:s}   {:.2f}  {:.2f}     {:.2f}  {:.2f}   {:.2f}   {:.2f}   {:.2f}   {:.2f}'.format(model_name, PCKh[head], 0.5 * (PCKh[lsho] + PCKh[rsho])\
+    print(('{:s}   {:.2f}  {:.2f}     {:.2f}  {:.2f}   {:.2f}   {:.2f}   {:.2f}   {:.2f}'.format(model_name, PCKh[head], 0.5 * (PCKh[lsho] + PCKh[rsho])\
             , 0.5 * (PCKh[lelb] + PCKh[relb]),0.5 * (PCKh[lwri] + PCKh[rwri]), 0.5 * (PCKh[lhip] + PCKh[rhip]), 0.5 * (PCKh[lkne] + PCKh[rkne]) \
-            , 0.5 * (PCKh[lank] + PCKh[rank]), np.mean(PCKh)))
+            , 0.5 * (PCKh[lank] + PCKh[rank]), np.mean(PCKh))))

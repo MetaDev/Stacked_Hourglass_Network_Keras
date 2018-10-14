@@ -39,7 +39,7 @@ class EvalCallBack(keras.callbacks.Callback):
 
         acc = total_suc*1.0 / (total_fail + total_suc)
 
-        print 'Eval Accuray ', acc, '@ Epoch ', epoch
+        print('Eval Accuray ', acc, '@ Epoch ', epoch)
 
         with open(os.path.join(self.get_folder_path(), 'val.txt'), 'a+') as xfile:
             xfile.write('Epoch ' + str(epoch) + ':' + str(acc) + '\n')
@@ -58,7 +58,7 @@ class EvalCallBack(keras.callbacks.Callback):
         modelName = os.path.join(self.foldpath, "weights_epoch" + str(epoch) + ".h5")
         self.model.save_weights(modelName)
 
-        print "Saving model to ", modelName
+        print("Saving model to ", modelName)
 
         self.run_eval(epoch)
 

@@ -11,10 +11,10 @@ from heatmap_process import post_process_heatmap
 def main():
     model = create_hourglass_network(16, 8, (256, 256), (64, 64), bottleneck_mobile)
     model.summary()
-    print len(model.output_layers)
+    print(len(model.output_layers))
     #plot_model(model, 'hg_s2.png', show_shapes=True)
     for layer in model.output_layers:
-        print layer.output_shape
+        print(layer.output_shape)
 
 def view_predict_hmap(predout, show_raw=False):
     from data_process import draw_labelmap
