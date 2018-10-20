@@ -4,8 +4,9 @@ import random
 import json
 import scipy
 import scipy.misc
-import data_process
+from  data_gen import data_process
 import numpy as np
+import cv2
 
 # Most of functions in this file are adpoted from https://github.com/bearpaw/pytorch-pose
 # with minor changes to fit Keras
@@ -46,34 +47,19 @@ def generate_gt_map(joints, sigma, outres):
 def view_crop_image(anno):
 
     print(list(anno.keys()))
-
     img_paths = anno['img_paths']
     img_width = anno['img_width']
     img_height = anno['img_height']
 
-    #print anno.keys()
-
     imgdata = scipy.misc.imread(os.path.join("../../data/mpii/images", img_paths))
     draw_joints(imgdata, anno['joint_self'])
-    #scipy.misc.imshow(imgdata)
 
     center = np.array(anno['objpos'])
     outimg = data_process.crop(imgdata, center= center,  scale=anno['scale_provided'], res=(256, 256), rot=0)
-    outimg_normalized = data_process.normalize(outimg)
- 
+
     print(outimg.shape)
 
     newjoints = data_process.transform_kp(np.array(anno['joint_self']), center, anno['scale_provided'], (64, 64), rot=0)
-    #draw_joints(outimg_normalized, newjoints.tolist())
-    #scipy.misc.imshow(outimg_normalized)
-
-    '''
-    mimage = np.zeros(shape=(64, 64), dtype=np.float)
-    gtmap = generate_gt_map(newjoints, sigma=1, outres=(64, 64))
-    for i in range(16):
-        mimage += gtmap[:, :, i]
-    scipy.misc.imshow(mimage)
-    '''
 
     # meta info
     metainfo = []
@@ -94,7 +80,8 @@ def view_crop_image(anno):
     print(tpbpts)
 
     draw_joints(imgdata, np.array(tpbpts))
-    scipy.misc.imshow(imgdata)
+    cv2.imshow('image', cv2.cvtColor(imgdata, cv2.COLOR_BGR2RGB))
+    cv2.waitKey(0)
 
 
 def main():

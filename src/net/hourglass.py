@@ -1,20 +1,16 @@
-import sys
-sys.path.insert(0, "../data_gen/")
-sys.path.insert(0, "../eval/")
-
 
 import os
-from hg_blocks import create_hourglass_network, euclidean_loss, bottleneck_block, bottleneck_mobile
-from mpii_datagen import MPIIDataGen
+from net.hg_blocks import create_hourglass_network, euclidean_loss, bottleneck_block, bottleneck_mobile
+from data_gen.mpii_datagen import MPIIDataGen
 from keras.callbacks import CSVLogger, ModelCheckpoint
 from keras.models import load_model, model_from_json
 from keras.optimizers import Adam, RMSprop
 from keras.losses import mean_squared_error
 import datetime
 import scipy.misc
-from data_process import normalize
+from data_gen.data_process import normalize
 import numpy as np
-from eval_callback import EvalCallBack
+from eval.eval_callback import EvalCallBack
 
 class HourglassNet(object):
 
@@ -33,6 +29,22 @@ class HourglassNet(object):
         # show model summary and layer name
         if show :
             self.model.summary()
+    def train_lsp(self,batch_size,model_path, epochs):
+        import data_gen.lsp_datgen as lsp
+        image_dir, joint_file = "../../data/lspet/images", "../../data/lspet/joints.mat"
+        data_set=lsp.LSP_dataset(image_dir, joint_file)
+        train_gen = data_set.generator(batch_size,self.inres,self.outres, self.num_stacks)
+        print(os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
+        csvlogger = CSVLogger(
+            os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
+
+        checkpoint = EvalCallBack(model_path)
+
+        xcallbacks = [csvlogger, checkpoint]
+
+        self.model.fit_generator(generator=train_gen, steps_per_epoch=data_set.get_dataset_size() // batch_size,
+                                 # validation_data=val_gen, validation_steps= val_dataset.get_dataset_size()//batch_size,
+                                 epochs=epochs, callbacks=xcallbacks)
 
     def train(self, batch_size, model_path, epochs):
         train_dataset = MPIIDataGen("../../data/mpii/mpii_annotations.json", "../../data/mpii/images",

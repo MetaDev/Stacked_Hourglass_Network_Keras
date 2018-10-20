@@ -2,8 +2,8 @@ import keras
 import os
 import datetime
 from time import time
-from mpii_datagen import MPIIDataGen
-from eval_heatmap import cal_heatmap_acc
+from data_gen.mpii_datagen import MPIIDataGen
+from eval.eval_heatmap import cal_heatmap_acc
 
 class EvalCallBack(keras.callbacks.Callback):
 

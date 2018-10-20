@@ -1,21 +1,19 @@
 import sys
-sys.path.insert(0, "../data_gen/")
-sys.path.insert(0, "../net/")
 
 import argparse
 import os
 import tensorflow as tf
 from keras import backend as k
-from hourglass import HourglassNet
+from net.hourglass import HourglassNet
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--gpuID", default=0, type=int, help='gpu id')
-    parser.add_argument("--mobile", default=False, help="use depthwise conv in hourglass'")
+    parser.add_argument("--mobile", default=True, help="use depthwise conv in hourglass'")
     parser.add_argument("--batch_size", default=8, type=int, help='batch size for training')
-    parser.add_argument("--model_path",  default="../output_data/models",help='path to store trained model')
-    parser.add_argument("--num_stack",  default=2, type=int, help='num of stacks')
-    parser.add_argument("--epochs", default=20, type=int, help="number of traning epochs")
+    parser.add_argument("--model_path",  default="../../trained_models/hg_s2_b1_m",help='path to store trained model')
+    parser.add_argument("--num_stack",  default=1, type=int, help='num of stacks')
+    parser.add_argument("--epochs", default=1, type=int, help="number of traning epochs")
     parser.add_argument("--resume", default=False, type=bool,  help="resume training or not")
     parser.add_argument("--resume_model", help="start point to retrain")
     parser.add_argument("--resume_model_json", help="model json")
@@ -47,4 +45,5 @@ if __name__ == "__main__":
                           init_epoch=args.init_epoch, epochs=args.epochs)
     else:
         xnet.build_model(mobile=args.mobile, show=True)
-        xnet.train(epochs=args.epochs, model_path=args.model_path, batch_size=args.batch_size)
+        # xnet.train(epochs=args.epochs, model_path=args.model_path, batch_size=args.batch_size)
+        xnet.train_lsp(epochs=args.epochs, model_path=args.model_path, batch_size=args.batch_size)

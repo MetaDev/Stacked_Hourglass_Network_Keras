@@ -1,6 +1,6 @@
 
-from heatmap_process import post_process_heatmap
-import data_process
+from eval.heatmap_process import post_process_heatmap
+from data_gen import data_process
 import numpy as np
 import copy
 

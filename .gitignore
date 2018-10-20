@@ -2,3 +2,4 @@
 .idea
 data/mpii/images/
 data/mpii/images/*
+*.bak
