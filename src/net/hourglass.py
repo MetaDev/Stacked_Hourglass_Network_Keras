@@ -38,9 +38,9 @@ class HourglassNet(object):
         csvlogger = CSVLogger(
             os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
 
-        checkpoint = EvalCallBack(model_path)
+        # checkpoint = EvalCallBack(model_path)
 
-        xcallbacks = [csvlogger, checkpoint]
+        xcallbacks = [csvlogger]
 
         self.model.fit_generator(generator=train_gen, steps_per_epoch=data_set.get_dataset_size() // batch_size,
                                  # validation_data=val_gen, validation_steps= val_dataset.get_dataset_size()//batch_size,
