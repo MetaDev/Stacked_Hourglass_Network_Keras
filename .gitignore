@@ -1,5 +1,6 @@
 *.pyc
 .idea
+data/lsp/images/
+data/lspet/images/
 data/mpii/images/
-data/mpii/images/*
 *.bak
