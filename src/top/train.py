@@ -37,8 +37,8 @@ if __name__ == "__main__":
     # Create a session with the above options specified.
     k.tensorflow_backend.set_session(tf.Session(config=config))
 
-
-    xnet = HourglassNet(num_classes=16, num_stacks=args.num_stack, inres=(256, 256), outres=(64, 64))
+    #!! canche num clases to 16 for MPII
+    xnet = HourglassNet(num_classes=14, num_stacks=args.num_stack, inres=(256, 256), outres=(64, 64))
 
     if args.resume:
         xnet.resume_train(batch_size=args.batch_size, model_json=args.resume_model_json, model_weights=args.resume_model,

@@ -4,7 +4,8 @@ import glob
 import re
 import os.path
 ROOT_DIR="../../data/lspet/"
-
+#for practical applications and the use of multiple dataset we only use 14 joints
+N_JOINTS=14
 def create_data(images_dir, joints_mat_path, transpose_order=(2, 0, 1)):
     """
     The file joints.mat is a MATLAB data file containing the joint annotations
@@ -63,6 +64,7 @@ from data_gen.data_process import generate_gtmap
 import cv2
 import scipy
 from  data_gen.utest_data_view import draw_joints
+from imgaug import parameters as iap
 
 def apply_iaa_keypoints(iaa, keypoints, shape):
     return keypoints2pose(iaa.augment_keypoints([pose2keypoints(shape, keypoints)])[0])
@@ -121,8 +123,9 @@ class LSP_dataset(object):
                 # draw_image_with_joints(image,joint_list)
 
                 # augment image data, apply 2 of the augmentations
+                #TODO add other interesting augmentation as such that less keypoints are lost e.g. PerspectiveTransform
                 seq = iaa.SomeOf(2, [
-                    iaa.Sometimes(0.4, iaa.Scale((0.5, 1.0))),
+                    iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.5,1.0))),
                     iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
                     iaa.Fliplr(0.1),
                     iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
@@ -133,12 +136,8 @@ class LSP_dataset(object):
                 image_aug = seq_det.augment_image(image)
                 # augment keyponts accordingly
                 joint_list[:, :2] = apply_iaa_keypoints(seq_det,joint_list[:,:2],image_aug.shape)
-                #TODO many joints become invisible try to augment in such a way that still at least 70 percent of the joints is visisble
-                #show the images with few joints visible
-                # set unvisible to 0, after scaling, the keypoints can be outside the image
-                set_outside_joints_invisible(joint_list, outres)
 
-
+                #show the images with joints visible
                 # draw_image_with_joints(image_aug,joint_list)
 
                 #normalize image channels and scale the input image and keypoints respectively

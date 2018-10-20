@@ -34,7 +34,7 @@ def draw_joints(cvmat, joints):
     for _joint in joints:
         _x, _y, _visibility = _joint
         if _visibility == 1.0:
-           cv2.circle(cvmat, center=(int(_x), int(_y)), color=(1.0, 1.0, 0), radius=7, thickness=2)
+           cv2.circle(cvmat, center=(int(_x), int(_y)), color=(255, 0, 0), radius=2,thickness=-1)
 
 
 def generate_gt_map(joints, sigma, outres):

@@ -3,7 +3,7 @@ import numpy as np
 from random import shuffle
 import scipy.misc
 import json
-import data_gen.data_process
+from data_gen import data_process
 import random
 
 
