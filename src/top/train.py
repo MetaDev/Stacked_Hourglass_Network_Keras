@@ -1,17 +1,22 @@
+#stupid python import stuff to work in terminal, don't know how pycharm does it
 import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+#########
 
 import argparse
 import os
 import tensorflow as tf
 from keras import backend as k
 from net.hourglass import HourglassNet
-
+#TODO change the data directory relative path based on whetther it is run from terminal or in pycharm
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--gpuID", default=0, type=int, help='gpu id')
     parser.add_argument("--mobile", default=True, help="use depthwise conv in hourglass'")
     parser.add_argument("--batch_size", default=8, type=int, help='batch size for training')
     parser.add_argument("--model_path",  default="../../trained_models/hg_s2_b1_m",help='path to store trained model')
+    parser.add_argument("--data_path", default="../../data", help='path where data is stored')
     parser.add_argument("--num_stack",  default=1, type=int, help='num of stacks')
     parser.add_argument("--epochs", default=1, type=int, help="number of traning epochs")
     parser.add_argument("--resume", default=False, type=bool,  help="resume training or not")
@@ -46,4 +51,4 @@ if __name__ == "__main__":
     else:
         xnet.build_model(mobile=args.mobile, show=True)
         # xnet.train(epochs=args.epochs, model_path=args.model_path, batch_size=args.batch_size)
-        xnet.train_lsp(epochs=args.epochs, model_path=args.model_path, batch_size=args.batch_size)
+        xnet.train_lsp(epochs=args.epochs, model_path=args.model_path,data_path=args.data_path, batch_size=args.batch_size)

@@ -29,12 +29,11 @@ class HourglassNet(object):
         # show model summary and layer name
         if show :
             self.model.summary()
-    def train_lsp(self,batch_size,model_path, epochs):
+    def train_lsp(self,batch_size,model_path,data_path, epochs):
         import data_gen.lsp_datgen as lsp
-        image_dir, joint_file = "../../data/lspet/images", "../../data/lspet/joints.mat"
-        data_set=lsp.LSP_dataset(image_dir, joint_file)
+        image_dir, joint_file = "lspet/images", "lspet/joints.mat"
+        data_set=lsp.LSP_dataset(os.path.join(data_path,image_dir), os.path.join(data_path,joint_file))
         train_gen = data_set.generator(batch_size,self.inres,self.outres, self.num_stacks)
-        print(os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
         csvlogger = CSVLogger(
             os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
 

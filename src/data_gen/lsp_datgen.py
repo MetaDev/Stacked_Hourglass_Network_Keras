@@ -3,7 +3,6 @@ from scipy.io import loadmat
 import glob
 import re
 import os.path
-ROOT_DIR="../../data/lspet/"
 #for practical applications and the use of multiple dataset we only use 14 joints
 N_JOINTS=14
 def create_data(images_dir, joints_mat_path, transpose_order=(2, 0, 1)):
