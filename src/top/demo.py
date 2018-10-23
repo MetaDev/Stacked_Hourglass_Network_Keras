@@ -1,13 +1,10 @@
 import sys
-sys.path.insert(0, "../data_gen/")
-sys.path.insert(0, "../net/")
-sys.path.insert(0, "../eval/")
-
 import os
-import numpy as np
-import scipy.misc
-from eval.heatmap_process import post_process_heatmap
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
 from net.hourglass import HourglassNet
+
+from eval.heatmap_process import post_process_heatmap
 import argparse
 
 from data_gen.mpii_datagen import MPIIDataGen
@@ -83,7 +80,6 @@ if __name__ == "__main__":
     parser.add_argument("--conf_threshold", type=float, default=0.2, help='confidence threshold')
 
     args = parser.parse_args()
-    print(args)
 
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpuID)
