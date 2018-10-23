@@ -1,10 +1,9 @@
 from scipy.ndimage import gaussian_filter, maximum_filter
 import numpy as np
 
-def post_process_heatmap(heatMap, kpConfidenceTh=0.2):
+def post_process_heatmap(heatMap):
     kplst = list()
     for i in range(heatMap.shape[-1]):
-        # ignore last channel, background channel
         _map = heatMap[:, :, i]
         _map = gaussian_filter(_map, sigma=0.5)
         _nmsPeaks = non_max_supression(_map, windowSize=3, threshold=1e-6)

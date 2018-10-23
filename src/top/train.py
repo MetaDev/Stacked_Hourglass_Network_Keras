@@ -9,7 +9,7 @@ import os
 import tensorflow as tf
 from keras import backend as k
 from net.hourglass import HourglassNet
-#TODO change the data directory relative path based on whetther it is run from terminal or in pycharm
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--gpuID", default=0, type=int, help='gpu id')
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", default=8, type=int, help='batch size for training')
     parser.add_argument("--model_path",  default="../../trained_models/hg_s2_b1_m",help='path to store trained model')
     parser.add_argument("--data_path", default="../../data", help='path where data is stored')
-    parser.add_argument("--num_stack",  default=1, type=int, help='num of stacks')
+    parser.add_argument("--num_stack",  default=2, type=int, help='num of stacks')
     parser.add_argument("--epochs", default=1, type=int, help="number of traning epochs")
     parser.add_argument("--resume", default=False, type=bool,  help="resume training or not")
     parser.add_argument("--resume_model", help="start point to retrain")
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     k.tensorflow_backend.set_session(tf.Session(config=config))
 
     #!! canche num clases to 16 for MPII
-    xnet = HourglassNet(num_classes=14, num_stacks=args.num_stack, inres=(256, 256), outres=(64, 64))
+    xnet = HourglassNet(num_classes=14, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
 
     if args.resume:
         xnet.resume_train(batch_size=args.batch_size, model_json=args.resume_model_json, model_weights=args.resume_model,

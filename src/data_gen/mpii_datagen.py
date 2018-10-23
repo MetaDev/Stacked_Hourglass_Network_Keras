@@ -9,13 +9,14 @@ import random
 
 class MPIIDataGen(object):
 
-    def __init__(self, jsonfile, imgpath, inres, outres, is_train):
+    def __init__(self, jsonfile, imgpath, inres, outres,num_hgstack, is_train):
         self.jsonfile = jsonfile
         self.imgpath  = imgpath
         self.inres    = inres
         self.outres   = outres
         self.is_train = is_train
         self.nparts   = 16
+        self.num_hgstack=num_hgstack
         self.anno     = self._load_image_annotation()
 
     def _load_image_annotation(self):
@@ -45,7 +46,7 @@ class MPIIDataGen(object):
     def get_annotations(self):
         return self.anno
 
-    def generator(self, batch_size, num_hgstack, sigma=1, with_meta=False, is_shuffle=False,
+    def generator(self, batch_size, sigma=1, with_meta=False, is_shuffle=False,
                   rot_flag=False, scale_flag=False, flip_flag=False):
         '''
         Input:  batch_size * inres  * Channel (3)
@@ -58,7 +59,7 @@ class MPIIDataGen(object):
         if not self.is_train:
             assert (is_shuffle == False), 'shuffle must be off in val model'
             assert (rot_flag == False),  'rot_flag must be off in val model'
-
+        num_hgstack =self.num_hgstack
         while True:
             if is_shuffle:
                 shuffle(self.anno)

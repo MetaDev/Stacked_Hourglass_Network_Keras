@@ -77,12 +77,15 @@ def set_outside_joints_invisible(joint_list,outres):
         if not 0<=joint[0]<outres[0] or not 0<=joint[1]<outres[1]:
             joint[2]=0
 class LSP_dataset(object):
-    def __init__(self,image_dir,joint_file):
+    def __init__(self,image_dir,joint_file,inres, outres,num_hgstack):
         #load dataset to be able to return the size
         self.data_img_joints=create_data(image_dir,joint_file)
+        self.outres=outres
+        self.inres=inres
+        self.num_hgstack=num_hgstack
     def get_dataset_size(self):
         return len(self.data_img_joints)
-    def generator(self,batch_size,inres, outres,num_hgstack, sigma=5,  is_shuffle=True):
+    def generator(self,batch_size, sigma=5,  is_shuffle=True,with_meta=False):
         #I don't know where these numbers come from but at least the mean comes back in several implementations of pose estimation
         mean = np.array([0.485, 0.456, 0.406])
         std = np.array([0.229, 0.224, 0.225])
@@ -90,10 +93,13 @@ class LSP_dataset(object):
         Input:  batch_size * inres  * Channel (3)
         Output: batch_size * oures  * nparts
         '''
+        inres=self.inres
+        outres=self.outres
+        num_hgstack=self.num_hgstack
         nparts=np.shape(self.data_img_joints[0][1])[0]
         train_input = np.zeros(shape=(batch_size, inres[0], inres[1], 3), dtype=np.float)
         gt_heatmap  = np.zeros(shape=(batch_size, outres[0], outres[1], nparts), dtype=np.float)
-
+        meta_info = []
         # create a batch of images and its heatmpas and yield it
         while True:
             if is_shuffle:
@@ -150,9 +156,15 @@ class LSP_dataset(object):
 
                 gt_hmp=generate_gtmap(joint_list, sigma, outres)
                 gt_heatmap[batch_i, :, :, :] = gt_hmp
+                #save keypoints that created the heatmap
+                meta_info.append({'tpts': joint_list})
                 if batch_i  == (batch_size - 1):
                     out_hmaps = [gt_heatmap] * num_hgstack
-                    yield train_input, out_hmaps
+                    if not with_meta:
+                        yield train_input, out_hmaps
+                    else:
+                        yield train_input, out_hmaps,meta_info
+                        meta_info=[]
 if __name__ == "__main__":
     image_dir, joint_file = "../../data/lspet/images", "../../data/lspet/joints.mat"
     data_set = LSP_dataset(image_dir, joint_file)

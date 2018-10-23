@@ -13,43 +13,44 @@ import numpy as np
 from eval.eval_callback import EvalCallBack
 
 class HourglassNet(object):
-
-    def __init__(self, num_classes, num_stacks, inres, outres):
+    # def get_output(self):
+    def __init__(self, num_classes, num_hgstacks, inres, outres):
         self.num_classes = num_classes
-        self.num_stacks = num_stacks
+        self.num_hgstacks = num_hgstacks
         self.inres = inres
         self.outres = outres
 
 
     def build_model(self, mobile=False, show=False):
         if mobile:
-            self.model = create_hourglass_network(self.num_classes, self.num_stacks, self.inres, self.outres, bottleneck_mobile)
+            self.model = create_hourglass_network(self.num_classes, self.num_hgstacks, self.inres, self.outres, bottleneck_mobile)
         else:
-            self.model = create_hourglass_network(self.num_classes, self.num_stacks, self.inres, self.outres, bottleneck_block)
+            self.model = create_hourglass_network(self.num_classes, self.num_hgstacks, self.inres, self.outres, bottleneck_block)
         # show model summary and layer name
         if show :
             self.model.summary()
     def train_lsp(self,batch_size,model_path,data_path, epochs):
         import data_gen.lsp_datgen as lsp
         image_dir, joint_file = "lspet/images", "lspet/joints.mat"
-        data_set=lsp.LSP_dataset(os.path.join(data_path,image_dir), os.path.join(data_path,joint_file))
-        train_gen = data_set.generator(batch_size,self.inres,self.outres, self.num_stacks)
+        data_set=lsp.LSP_dataset(os.path.join(data_path,image_dir), os.path.join(data_path,joint_file),
+                                 self.inres, self.outres, self.num_hgstacks)
+        train_gen = data_set.generator(batch_size)
         csvlogger = CSVLogger(
-            os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
+            os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%d-%m;%H:%M')) + ".csv"))
 
-        # checkpoint = EvalCallBack(model_path)
+        checkpoint = EvalCallBack(model_path,self)
 
-        xcallbacks = [csvlogger]
-
-        self.model.fit_generator(generator=train_gen, steps_per_epoch=data_set.get_dataset_size() // batch_size,
+        xcallbacks = [csvlogger,checkpoint]
+        steps=data_set.get_dataset_size() // batch_size
+        self.model.fit_generator(generator=train_gen, steps_per_epoch=1,
                                  # validation_data=val_gen, validation_steps= val_dataset.get_dataset_size()//batch_size,
                                  epochs=epochs, callbacks=xcallbacks)
 
     def train(self, batch_size, model_path, epochs):
         train_dataset = MPIIDataGen("../../data/mpii/mpii_annotations.json", "../../data/mpii/images",
                                       inres=self.inres,  outres=self.outres, is_train=True)
-        train_gen = train_dataset.generator(batch_size, self.num_stacks, sigma=1, is_shuffle=True,
-                                    rot_flag=True, scale_flag=True, flip_flag=True)
+        train_gen = train_dataset.generator(batch_size, self.num_hgstacks, sigma=1, is_shuffle=True,
+                                            rot_flag=True, scale_flag=True, flip_flag=True)
         print(os.path.join(model_path, "csv_train_"+ str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
         csvlogger = CSVLogger(os.path.join(model_path, "csv_train_"+ str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
 
@@ -69,8 +70,8 @@ class HourglassNet(object):
         train_dataset = MPIIDataGen("../../data/mpii/mpii_annotations.json", "../../data/mpii/images",
                                     inres=self.inres, outres=self.outres, is_train=True)
 
-        train_gen = train_dataset.generator(batch_size, self.num_stacks, sigma=1, is_shuffle=True,
-                                    rot_flag=True, scale_flag=True, flip_flag=True)
+        train_gen = train_dataset.generator(batch_size, self.num_hgstacks, sigma=1, is_shuffle=True,
+                                            rot_flag=True, scale_flag=True, flip_flag=True)
 
         model_dir = os.path.dirname(os.path.abspath(model_json))
         print(model_dir , model_json)
@@ -105,7 +106,7 @@ class HourglassNet(object):
         imgdata = normalize(imgdata, mean)
 
         input = imgdata[np.newaxis, :, :, :]
-
+        #WARNING this code only works of there are more than 1 stacks
         out = self.model.predict(input)
         return out[-1], scale
 
