@@ -1,6 +1,4 @@
 import os
-import sys
-import random
 import json
 import scipy
 import scipy.misc
@@ -10,6 +8,8 @@ import cv2
 
 # Most of functions in this file are adpoted from https://github.com/bearpaw/pytorch-pose
 # with minor changes to fit Keras
+from data_gen.data_gen_utils import draw_joints
+
 
 def load_sample_ids(jsonfile, is_train):
     # create train/val split
@@ -27,14 +27,6 @@ def load_sample_ids(jsonfile, is_train):
         return train_anno
     else:
         return val_anno
-
-def draw_joints(cvmat, joints):
-    # fixme: image load by scipy is RGB, not CV2's channel BGR
-    import cv2
-    for _joint in joints:
-        _x, _y, _visibility = _joint
-        if _visibility == 1.0:
-           cv2.circle(cvmat, center=(int(_x), int(_y)), color=(255, 0, 0), radius=2,thickness=-1)
 
 
 def generate_gt_map(joints, sigma, outres):

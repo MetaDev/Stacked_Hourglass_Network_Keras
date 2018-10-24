@@ -5,6 +5,7 @@ from time import time
 from data_gen.mpii_datagen import MPIIDataGen
 from eval.eval_heatmap import cal_heatmap_acc
 from data_gen.lsp_datgen import LSP_dataset
+
 class EvalCallBack(keras.callbacks.Callback):
 
     def __init__(self, foldpath,hourglass):
@@ -32,11 +33,13 @@ class EvalCallBack(keras.callbacks.Callback):
 
         count = 0
         batch_size = 8
+
         for _img, _gthmap, _meta in valdata.generator(batch_size, is_shuffle=False, with_meta=True):
 
             count += batch_size
             # if count > valdata.get_dataset_size():
             #WARNING this is cpu test code
+            #TODO set some cpu check code here to make it portable
             if count > 10:
                 break
             out = self.model.predict(_img)

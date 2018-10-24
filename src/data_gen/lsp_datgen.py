@@ -3,7 +3,43 @@ from scipy.io import loadmat
 import glob
 import re
 import os.path
+
+from data_gen.data_gen_utils import expand_bbox, flip_symmetric_keypoints
+
+""""
+order of joints:
+
+Right ankle
+Right knee
+Right hip
+Left hip
+Left knee
+Left ankle
+Right wrist
+Right elbow
+Right shoulder
+Left shoulder
+Left elbow
+Left wrist
+Neck
+Head top
+"""
+
+c_r=(255,0,0)
+c_l=(0,0,255)
+
+colormap=[c_r]*3+[c_l]*3+[c_r]*3+[c_l]*3+[(0,255,255),(255,0,255)]
+matchedParts = (
+    [0, 5],  # ankle
+    [1, 4],  # knee
+    [2, 3],  # hip
+    [6, 11],  # wrist
+    [7, 10],  # elbow
+    [8, 9]  # shoulder
+)
 #for practical applications and the use of multiple dataset we only use 14 joints
+#for now, it can be investigated that richer dataset can be used in such a way that for the
+#datasets with less joints it is simply set to invisible
 N_JOINTS=14
 def create_data(images_dir, joints_mat_path, transpose_order=(2, 0, 1)):
     """
@@ -28,7 +64,11 @@ def create_data(images_dir, joints_mat_path, transpose_order=(2, 0, 1)):
 import imgaug as ia
 from imgaug import augmenters as iaa
 import numpy as np
+from imgaug import parameters as iap
 
+
+#TODO
+#keypoints can be made from coord array: from_coords_array, get_coords_array
 def pose2keypoints( shape, pose):
     keypoints = []
     for row in range(int(pose.shape[0])):
@@ -47,35 +87,21 @@ def keypoints2pose(keypoints_aug):
     return np.array(one_person).reshape([-1, 2])
 
 
-from skimage import io, transform
+from skimage import io
 #create a bigger bounding box
-def expand_bbox(left, right, top, bottom, img_width, img_height):
-    width = right-left
-    height = bottom-top
-    ratio = 0.15
-    new_left = np.clip(left-ratio*width,0,img_width)
-    new_right = np.clip(right+ratio*width,0,img_width)
-    new_top = np.clip(top-ratio*height,0,img_height)
-    new_bottom = np.clip(bottom+ratio*height,0,img_height)
-
-    return [int(new_left), int(new_top), int(new_right), int(new_bottom)]
 from data_gen.data_process import generate_gtmap
-import cv2
-import scipy
-from  data_gen.utest_data_view import draw_joints
-from imgaug import parameters as iap
+
 
 def apply_iaa_keypoints(iaa, keypoints, shape):
     return keypoints2pose(iaa.augment_keypoints([pose2keypoints(shape, keypoints)])[0])
-def draw_image_with_joints(image,joint_list):
-    test = np.copy(image).astype(np.uint8)
-    draw_joints(test, joint_list)
-    cv2.imshow('image', cv2.cvtColor(test, cv2.COLOR_BGR2RGB))
-    cv2.waitKey(0)
-def set_outside_joints_invisible(joint_list,outres):
-    for joint in joint_list:
-        if not 0<=joint[0]<outres[0] or not 0<=joint[1]<outres[1]:
-            joint[2]=0
+
+
+#calculated on whole image dataset
+mean = np.array([0.485, 0.456, 0.406])
+std = np.array([0.229, 0.224, 0.225])
+
+#TODO use the bounding box method from util method
+
 class LSP_dataset(object):
     def __init__(self,image_dir,joint_file,inres, outres,num_hgstack):
         #load dataset to be able to return the size
@@ -86,9 +112,7 @@ class LSP_dataset(object):
     def get_dataset_size(self):
         return len(self.data_img_joints)
     def generator(self,batch_size, sigma=5,  is_shuffle=True,with_meta=False):
-        #I don't know where these numbers come from but at least the mean comes back in several implementations of pose estimation
-        mean = np.array([0.485, 0.456, 0.406])
-        std = np.array([0.229, 0.224, 0.225])
+
         '''
         Input:  batch_size * inres  * Channel (3)
         Output: batch_size * oures  * nparts
@@ -96,9 +120,8 @@ class LSP_dataset(object):
         inres=self.inres
         outres=self.outres
         num_hgstack=self.num_hgstack
-        nparts=np.shape(self.data_img_joints[0][1])[0]
         train_input = np.zeros(shape=(batch_size, inres[0], inres[1], 3), dtype=np.float)
-        gt_heatmap  = np.zeros(shape=(batch_size, outres[0], outres[1], nparts), dtype=np.float)
+        gt_heatmap  = np.zeros(shape=(batch_size, outres[0], outres[1], N_JOINTS), dtype=np.float)
         meta_info = []
         # create a batch of images and its heatmpas and yield it
         while True:
@@ -111,11 +134,11 @@ class LSP_dataset(object):
                 image = io.imread(img_path)
                 batch_i=_i%batch_size
 
-                # draw_image_with_joints(image,joint_list)
+                # d_util.draw_image_with_joints(image,joint_list)
 
                 #set bounding box
                 height, width = image.shape[0], image.shape[1]
-
+                #check what happens with invisible joints as their coordinates are 0 or -1, and could interfere
                 xmin = np.min(joint_list[:, 0])
                 ymin = np.min(joint_list[:, 1])
                 xmax = np.max(joint_list[:, 0])
@@ -125,14 +148,20 @@ class LSP_dataset(object):
                 #change keypoints according to new bounding box
                 joint_list[:,:2] = joint_list[:,:2] - np.array([box[0], box[1]])
 
-                # draw_image_with_joints(image,joint_list)
+                #d_util.draw_image_with_joints(image,joint_list)
 
                 # augment image data, apply 2 of the augmentations
+
                 #TODO add other interesting augmentation as such that less keypoints are lost e.g. PerspectiveTransform
+                #or contrary hide keypoints in image data with object to make model more robust
+
+                # the augmentation doesn't take into account that flipping switches the semantic meaning of left and right
+                flip_j = lambda keypoints_on_images, random_state, parents, hooks : flip_symmetric_keypoints(keypoints_on_images)
+                noop = lambda images, random_state, parents, hooks : images
                 seq = iaa.SomeOf(2, [
                     iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.5,1.0))),
                     iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
-                    iaa.Fliplr(0.1),
+                    iaa.Sequential([iaa.Fliplr(0.1),iaa.Lambda(noop, flip_j)]),
                     iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
                     iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
                 ])
@@ -142,8 +171,9 @@ class LSP_dataset(object):
                 # augment keyponts accordingly
                 joint_list[:, :2] = apply_iaa_keypoints(seq_det,joint_list[:,:2],image_aug.shape)
 
+
                 #show the images with joints visible
-                # draw_image_with_joints(image_aug,joint_list)
+                draw_image_with_joints(image_aug,joint_list)
 
                 #normalize image channels and scale the input image and keypoints respectively
                 img_scale=iaa.Scale({"height": inres[0], "width": inres[1]})
@@ -167,8 +197,8 @@ class LSP_dataset(object):
                         meta_info=[]
 if __name__ == "__main__":
     image_dir, joint_file = "../../data/lspet/images", "../../data/lspet/joints.mat"
-    data_set = LSP_dataset(image_dir, joint_file)
-    train_gen = data_set.generator(100, [128,128], [128,128], 1)
+    data_set = LSP_dataset(image_dir, joint_file, [128,128], [128,128], 1)
+    train_gen = data_set.generator(100)
     for i,_ in enumerate(train_gen):
         if i==2:
             break
