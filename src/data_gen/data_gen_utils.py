@@ -1,7 +1,7 @@
+import imgaug as ia
 import numpy as np
 import cv2
 
-from data_gen.lsp_datgen import matchedParts
 
 
 def draw_image_with_joints(image,joint_list,colormap=None):
@@ -45,13 +45,35 @@ def get_bounding_box(joints,img):
     right=np.max(visible_joints[:,0])
     bottom=np.max(visible_joints[:,1])
     height,width=img.shape[1],img.shape[0]
-    return d_util.expand_bbox(left,right,top,bottom,height,width,ratio=0.4)
+    return expand_bbox(left,right,top,bottom,height,width,ratio=0.4)
 
 
-def flip_symmetric_keypoints(keypointsOnImage):
+def flip_symmetric_keypoints(keypointsOnImage,matchedParts):
     keypoints=keypointsOnImage[0].keypoints
     for i, j in matchedParts:
         temp_i=keypoints[i]
         temp_j = keypoints[j]
         keypoints[j],keypoints[i] = temp_i,temp_j
     return keypointsOnImage
+
+
+def keypoints2pose(keypoints_aug):
+    one_person = []
+    for kp_idx, keypoint in enumerate(keypoints_aug.keypoints):
+        x_new, y_new = keypoint.x, keypoint.y
+        one_person.append(np.array(x_new).astype(np.float32))
+        one_person.append(np.array(y_new).astype(np.float32))
+    return np.array(one_person).reshape([-1, 2])
+
+
+def pose2keypoints( shape, pose):
+    keypoints = []
+    for row in range(int(pose.shape[0])):
+        x = pose[row, 0]
+        y = pose[row, 1]
+        keypoints.append(ia.Keypoint(x=x, y=y))
+    return ia.KeypointsOnImage(keypoints, shape=shape)
+
+
+def apply_iaa_keypoints(iaa, keypoints, shape):
+    return keypoints2pose(iaa.augment_keypoints([pose2keypoints(shape, keypoints)])[0])

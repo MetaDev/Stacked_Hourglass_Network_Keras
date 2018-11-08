@@ -2,7 +2,7 @@ import numpy as np
 from skimage import io
 from data_gen.data_gen_utils import get_bounding_box
 from imgaug import augmenters as iaa
-from data_gen.data_gen_utils import expand_bbox, flip_symmetric_keypoints
+from data_gen.data_gen_utils import *
 
 
 joints = ['r_ankle', 'r_knee', 'r_hip',
@@ -10,6 +10,14 @@ joints = ['r_ankle', 'r_knee', 'r_hip',
                 'plevis', 'thorax', 'upper_neck', 'head_top',
                 'r_wrist', 'r_elbow', 'r_shoulder',
                 'l_shoulder', 'l_elbow', 'l_wrist']
+matchedParts = (
+    [0, 5],  # ankle
+    [1, 4],  # knee
+    [2, 3],  # hip
+    [10, 15],  # wrist
+    [11, 14],  # elbow
+    [12, 13]  # shoulder
+)
 mean = np.array([0.4404, 0.4440, 0.4327], dtype=np.float)
 #TODO calculate std for all images in MPII dataset, the std below is from lsp dataset
 std = np.array([0.229, 0.224, 0.225])
@@ -70,7 +78,7 @@ class MSPII_dataset(object):
                 # d_util.draw_image_with_joints(image, joints)
 
                 #
-                # # draw_image_with_joints(image,joint_list)
+                draw_image_with_joints(image,joint_list)
                 #
 
                 # augment image data, apply 2 of the augmentations
@@ -80,7 +88,7 @@ class MSPII_dataset(object):
 
                 # the augmentation doesn't take into account that flipping switches the semantic meaning of left and right
                 flip_j = lambda keypoints_on_images, random_state, parents, hooks: flip_symmetric_keypoints(
-                    keypoints_on_images)
+                    keypoints_on_images,matchedParts)
                 noop = lambda images, random_state, parents, hooks: images
                 seq = iaa.SomeOf(5, [
                     iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.5,1.0))),
@@ -89,14 +97,15 @@ class MSPII_dataset(object):
                     iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
                     iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
                 ])
+                #TODO HERE keypoints don't match
                 #
-                # seq_det = seq.to_deterministic()
-                # image_aug = seq_det.augment_image(image)
-                # # augment keyponts accordingly
-                # joint_list[:, :2] = apply_iaa_keypoints(seq_det, joint_list[:, :2], image_aug.shape)
-                #
-                # # show the images with joints visible
-                # draw_image_with_joints(image_aug, joint_list)
+                seq_det = seq.to_deterministic()
+                image_aug = seq_det.augment_image(image)
+                # augment keyponts accordingly
+                joint_list[:, :2] = apply_iaa_keypoints(seq_det, joint_list[:, :2], image_aug.shape)
+
+                # show the images with joints visible
+                draw_image_with_joints(image_aug, joint_list)
                 #
                 # # normalize image channels and scale the input image and keypoints respectively
                 # img_scale = iaa.Scale({"height": inres[0], "width": inres[1]})

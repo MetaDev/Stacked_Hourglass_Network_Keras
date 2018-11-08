@@ -4,7 +4,7 @@ import glob
 import re
 import os.path
 
-from data_gen.data_gen_utils import expand_bbox, flip_symmetric_keypoints
+from data_gen.data_gen_utils import *
 
 """"
 order of joints:
@@ -61,7 +61,6 @@ def create_data(images_dir, joints_mat_path, transpose_order=(2, 0, 1)):
     return lines
 
 
-import imgaug as ia
 from imgaug import augmenters as iaa
 import numpy as np
 from imgaug import parameters as iap
@@ -69,32 +68,11 @@ from imgaug import parameters as iap
 
 #TODO
 #keypoints can be made from coord array: from_coords_array, get_coords_array
-def pose2keypoints( shape, pose):
-    keypoints = []
-    for row in range(int(pose.shape[0])):
-        x = pose[row, 0]
-        y = pose[row, 1]
-        keypoints.append(ia.Keypoint(x=x, y=y))
-    return ia.KeypointsOnImage(keypoints, shape=shape)
-
-
-def keypoints2pose(keypoints_aug):
-    one_person = []
-    for kp_idx, keypoint in enumerate(keypoints_aug.keypoints):
-        x_new, y_new = keypoint.x, keypoint.y
-        one_person.append(np.array(x_new).astype(np.float32))
-        one_person.append(np.array(y_new).astype(np.float32))
-    return np.array(one_person).reshape([-1, 2])
 
 
 from skimage import io
 #create a bigger bounding box
 from data_gen.data_process import generate_gtmap
-
-
-def apply_iaa_keypoints(iaa, keypoints, shape):
-    return keypoints2pose(iaa.augment_keypoints([pose2keypoints(shape, keypoints)])[0])
-
 
 #calculated on whole image dataset
 mean = np.array([0.485, 0.456, 0.406])
@@ -156,7 +134,8 @@ class LSP_dataset(object):
                 #or contrary hide keypoints in image data with object to make model more robust
 
                 # the augmentation doesn't take into account that flipping switches the semantic meaning of left and right
-                flip_j = lambda keypoints_on_images, random_state, parents, hooks : flip_symmetric_keypoints(keypoints_on_images)
+                flip_j = lambda keypoints_on_images, random_state, parents, hooks : \
+                    flip_symmetric_keypoints(keypoints_on_images,matchedParts)
                 noop = lambda images, random_state, parents, hooks : images
                 seq = iaa.SomeOf(2, [
                     iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.5,1.0))),
@@ -169,7 +148,7 @@ class LSP_dataset(object):
                 seq_det = seq.to_deterministic()
                 image_aug = seq_det.augment_image(image)
                 # augment keyponts accordingly
-                joint_list[:, :2] = apply_iaa_keypoints(seq_det,joint_list[:,:2],image_aug.shape)
+                joint_list[:, :2] = apply_iaa_keypoints(seq_det, joint_list[:, :2], image_aug.shape)
 
 
                 #show the images with joints visible
@@ -179,7 +158,7 @@ class LSP_dataset(object):
                 img_scale=iaa.Scale({"height": inres[0], "width": inres[1]})
                 image_aug = img_scale.augment_image(image_aug)
                 kp_scale = iaa.Scale({"height": outres[0], "width": outres[1]})
-                joint_list[:, :2] = apply_iaa_keypoints(kp_scale , joint_list[:, :2], outres)
+                joint_list[:, :2] = apply_iaa_keypoints(kp_scale, joint_list[:, :2], outres)
                 image_aug = ((image_aug / 255.0) - mean)/std
 
                 train_input[batch_i, :, :, :] = image_aug

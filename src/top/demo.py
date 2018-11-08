@@ -10,7 +10,9 @@ import argparse
 from data_gen.mpii_datagen import MPIIDataGen
 import cv2
 
-
+import os
+cwd = os.getcwd()
+print(cwd)
 def render_joints(cvmat, joints, conf_th=0.2):
     for _joint in joints:
         _x, _y , _conf = _joint
