@@ -1,13 +1,34 @@
 import imgaug as ia
 import numpy as np
 import cv2
+from imgaug import augmenters as iaa
 
-def draw_image_with_joints(image,joint_list,colormap=None):
+
+#standard joint order
+
+""""
+order of joints:
+
+Right ankle
+Right knee
+Right hip
+Left hip
+Left knee
+Left ankle
+Right wrist
+Right elbow
+Right shoulder
+Left shoulder
+Left elbow
+Left wrist
+Neck
+Head top
+"""
+def image_with_joints(image,joint_list,colormap=None):
     test = np.copy(image).astype(np.uint8)
-    draw_joints(test, joint_list,colormap)
-    cv2.imshow('image', cv2.cvtColor(test, cv2.COLOR_BGR2RGB))
-    cv2.waitKey(0)
-def draw_image(image):
+    paint_joints(test, joint_list, colormap)
+    return test
+def draw(image):
     cv2.imshow('image', cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     cv2.waitKey(0)
 
@@ -21,15 +42,16 @@ def expand_bbox(left, right, top, bottom, img_width, img_height,ratio=0.15):
     new_bottom = np.clip(bottom+ratio*height,0,img_height)
 
     return [int(new_left), int(new_top), int(new_right), int(new_bottom)]
+def draw_images(images,size=(512,512)):
+    fit_im=iaa.Scale(size)
+    scaled_ims= [fit_im.augment_image(im) for im in images]
+    draw(np.concatenate(scaled_ims,axis=1))
 
-
-def draw_joints(cvmat, joints,colormap=None):
-    # fixme: image load by scipy is RGB, not CV2's channel BGR
-    import cv2
+def paint_joints(cvmat, joints, colormap=None):
     for j,_joint in enumerate(joints):
         _x, _y, _visibility = _joint
         if _visibility == 1.0:
-            if colormap:
+            if colormap is not None:
                 color=colormap[j]
             else:
                 color=(255, 0, 0)
@@ -45,8 +67,20 @@ def get_bounding_box(joints,img):
     height,width=img.shape[1],img.shape[0]
     return expand_bbox(left,right,top,bottom,height,width,ratio=0.4)
 
-
-def flip_symmetric_keypoints(keypointsOnImage,matchedParts):
+#flip using the LSP convention
+matchedParts = (
+    [0, 5],  # ankle
+    [1, 4],  # knee
+    [2, 3],  # hip
+    [6, 11],  # wrist
+    [7, 10],  # elbow
+    [8, 9]  # shoulder
+)
+LR_colormap=np.zeros((14,3))
+for p in matchedParts:
+    LR_colormap[p[0]]=[255,0,0]
+    LR_colormap[p[1]] = [0, 255, 0]
+def flip_symmetric_keypoints(keypointsOnImage):
     keypoints=keypointsOnImage[0].keypoints
     for i, j in matchedParts:
         temp_i=keypoints[i]

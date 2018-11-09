@@ -29,14 +29,7 @@ c_r=(255,0,0)
 c_l=(0,0,255)
 
 colormap=[c_r]*3+[c_l]*3+[c_r]*3+[c_l]*3+[(0,255,255),(255,0,255)]
-matchedParts = (
-    [0, 5],  # ankle
-    [1, 4],  # knee
-    [2, 3],  # hip
-    [6, 11],  # wrist
-    [7, 10],  # elbow
-    [8, 9]  # shoulder
-)
+
 #for practical applications and the use of multiple dataset we only use 14 joints
 #for now, it can be investigated that richer dataset can be used in such a way that for the
 #datasets with less joints it is simply set to invisible
@@ -126,21 +119,19 @@ class LSP_dataset(object):
                 #change keypoints according to new bounding box
                 joint_list[:,:2] = joint_list[:,:2] - np.array([box[0], box[1]])
 
-                #d_util.draw_image_with_joints(image,joint_list)
+                # DEBUG
+                # im_j_before=image_with_joints(image,joint_list,colormap=LR_colormap)
 
                 # augment image data, apply 2 of the augmentations
 
-                #TODO add other interesting augmentation as such that less keypoints are lost e.g. PerspectiveTransform
-                #or contrary hide keypoints in image data with object to make model more robust
-
                 # the augmentation doesn't take into account that flipping switches the semantic meaning of left and right
                 flip_j = lambda keypoints_on_images, random_state, parents, hooks : \
-                    flip_symmetric_keypoints(keypoints_on_images,matchedParts)
+                    flip_symmetric_keypoints(keypoints_on_images)
                 noop = lambda images, random_state, parents, hooks : images
                 seq = iaa.SomeOf(2, [
-                    iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.5,1.0))),
+                    iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.5, 1.0))),
                     iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
-                    iaa.Sequential([iaa.Fliplr(0.1),iaa.Lambda(noop, flip_j)]),
+                    iaa.Sometimes(0.2, iaa.Sequential([iaa.Fliplr(1), iaa.Lambda(noop, flip_j)])),
                     iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
                     iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
                 ])
@@ -148,11 +139,12 @@ class LSP_dataset(object):
                 seq_det = seq.to_deterministic()
                 image_aug = seq_det.augment_image(image)
                 # augment keyponts accordingly
-                joint_list[:, :2] = apply_iaa_keypoints(seq_det, joint_list[:, :2], image_aug.shape)
+                joint_list[:, :2] = apply_iaa_keypoints(seq_det, joint_list[:, :2], image.shape)
 
-
-                #show the images with joints visible
-                draw_image_with_joints(image_aug,joint_list)
+                # show the images with joints visible
+                # DEBUG
+                # im_j_after=image_with_joints(image_aug, joint_list, colormap=LR_colormap)
+                # draw_images([im_j_before,im_j_after])
 
                 #normalize image channels and scale the input image and keypoints respectively
                 img_scale=iaa.Scale({"height": inres[0], "width": inres[1]})

@@ -1,9 +1,9 @@
 
 import os
-from net.hg_blocks import create_hourglass_network, euclidean_loss, bottleneck_block, bottleneck_mobile
+from net.hg_blocks import create_hourglass_network, bottleneck_block, bottleneck_mobile
 from data_gen.mpii_datagen import MPIIDataGen
-from keras.callbacks import CSVLogger, ModelCheckpoint
-from keras.models import load_model, model_from_json
+from keras.callbacks import CSVLogger
+from keras.models import model_from_json
 from keras.optimizers import Adam, RMSprop
 from keras.losses import mean_squared_error
 import datetime
@@ -11,6 +11,7 @@ import scipy.misc
 from data_gen.data_process import normalize
 import numpy as np
 from eval.LSP_eval_callback import EvalCallBack
+from data_gen.mpII_datagen2 import MPII_dataset
 
 class HourglassNet(object):
     # def get_output(self):
@@ -36,7 +37,7 @@ class HourglassNet(object):
                                  self.inres, self.outres, self.num_hgstacks)
         train_gen = data_set.generator(batch_size)
         csvlogger = CSVLogger(
-            os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%d-%m;%H:%M')) + ".csv"))
+            os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%d_%m-%H_%M')) + ".csv"))
 
         checkpoint = EvalCallBack(model_path,self)
 
@@ -46,22 +47,23 @@ class HourglassNet(object):
                                  # validation_data=val_gen, validation_steps= val_dataset.get_dataset_size()//batch_size,
                                  epochs=epochs, callbacks=xcallbacks)
 
-    def trainMPII2(self, batch_size, model_path, epochs):
-        train_dataset = MPIIDataGen("../../data/mpii/mpii_annotations.json", "../../data/mpii/images",
-                                    inres=self.inres, outres=self.outres, is_train=True)
-        train_gen = train_dataset.generator(batch_size, self.num_hgstacks, sigma=1, is_shuffle=True,
-                                            rot_flag=True, scale_flag=True, flip_flag=True)
-        print(os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
+    def trainMPII2(self, batch_size, model_path,data_path, epochs):
+        data_set = MPII_dataset(os.path.join(data_path,"mpii/images"),
+                               os.path.join(data_path,"mpii/mpii_annotations.json"),
+                                   self.inres, self.outres,self.num_hgstacks)
+        train_gen = data_set.generator(batch_size)
         csvlogger = CSVLogger(
-            os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
+            os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%d_%m-%H_%M')) + ".csv"))
 
         checkpoint = EvalCallBack(model_path,self)
 
         xcallbacks = [csvlogger, checkpoint]
 
-        self.model.fit_generator(generator=train_gen, steps_per_epoch=train_dataset.get_dataset_size() // batch_size,
+        steps = data_set.get_dataset_size() // batch_size
+        self.model.fit_generator(generator=train_gen, steps_per_epoch=steps,
                                  # validation_data=val_gen, validation_steps= val_dataset.get_dataset_size()//batch_size,
                                  epochs=epochs, callbacks=xcallbacks)
+
     def train(self, batch_size, model_path, epochs):
         train_dataset = MPIIDataGen("../../data/mpii/mpii_annotations.json", "../../data/mpii/images",
                                       inres=self.inres,  outres=self.outres, num_hgstack=self.num_hgstacks,is_train=True)

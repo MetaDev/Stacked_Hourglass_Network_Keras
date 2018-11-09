@@ -46,14 +46,20 @@ if __name__ == "__main__":
     # if args.resume:
     #     xnet.resume_train(batch_size=args.batch_size, model_json=args.resume_model_json, model_weights=args.resume_model,
     #                       init_epoch=args.init_epoch, epochs=args.epochs)
-    MPII=False
-    if MPII==True:
+    #MPII old, MPII new amd LSP
+    data=[0,1,2][1]
+    if data==0:
         xnet = HourglassNet(num_classes=16, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
 
         xnet.build_model(mobile=args.mobile, show=True)
 
         xnet.train(epochs=args.epochs, model_path=args.model_path, batch_size=args.batch_size)
-    else:
+    elif data==1:
+        xnet = HourglassNet(num_classes=14, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
+        xnet.build_model(mobile=args.mobile, show=True)
+        xnet.trainMPII2(epochs=args.epochs, model_path=args.model_path, data_path=args.data_path,
+                       batch_size=args.batch_size)
+    elif data==2:
         xnet = HourglassNet(num_classes=14, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
         xnet.build_model(mobile=args.mobile, show=True)
         xnet.train_lsp(epochs=args.epochs, model_path=args.model_path,data_path=args.data_path, batch_size=args.batch_size)

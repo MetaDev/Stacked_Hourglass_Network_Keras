@@ -8,7 +8,7 @@ import cv2
 
 # Most of functions in this file are adpoted from https://github.com/bearpaw/pytorch-pose
 # with minor changes to fit Keras
-from data_gen.data_gen_utils import draw_joints
+from data_gen.data_gen_utils import paint_joints
 
 
 def load_sample_ids(jsonfile, is_train):
@@ -44,7 +44,7 @@ def view_crop_image(anno):
     img_height = anno['img_height']
 
     imgdata = scipy.misc.imread(os.path.join("../../data/mpii/images", img_paths))
-    draw_joints(imgdata, anno['joint_self'])
+    paint_joints(imgdata, anno['joint_self'])
 
     center = np.array(anno['objpos'])
     outimg = data_process.crop(imgdata, center= center,  scale=anno['scale_provided'], res=(256, 256), rot=0)
@@ -71,7 +71,7 @@ def view_crop_image(anno):
 
     print(tpbpts)
 
-    draw_joints(imgdata, np.array(tpbpts))
+    paint_joints(imgdata, np.array(tpbpts))
     cv2.imshow('image', cv2.cvtColor(imgdata, cv2.COLOR_BGR2RGB))
     cv2.waitKey(0)
 

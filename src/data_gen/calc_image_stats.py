@@ -1,0 +1,1 @@
+#TODO read all images from a folder and calculate the mean color and color variance

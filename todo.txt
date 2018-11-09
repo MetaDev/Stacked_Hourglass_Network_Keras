@@ -1,0 +1,35 @@
+data augmentation
+
+#  add other interesting augmentation as such that less keypoints are lost e.g. PerspectiveTransform
+# or contrary hide keypoints (using masks of other images) in image data with object to make model more robust
+
+#add a check if joints are outside the image, if so repeat augmentation
+# add a filter if there is not enough joints present
+
+add LSP dataset to LSPET
+
+--------------------------------
+evaluation
+
+evaluate on random samples from all datasets
+--------------------------------
+refactor
+
+save and load models
+
+pose2keypoints code
+
+keras to tf.keras
+
+--------------------
+reasearch
+
+reduced architectures: mobilepose (resnet, mobilenetv2)
+
+read hourglass paper
+
+------------------------
+CoreML
+
+rewrite loss to work in 4 dimensions (concat stacks) --> also reduces batch footprint
+

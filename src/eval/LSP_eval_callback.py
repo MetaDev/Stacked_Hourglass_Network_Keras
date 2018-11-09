@@ -23,37 +23,39 @@ class EvalCallBack(keras.callbacks.Callback):
         #                       inres=(256, 256), outres=(64, 64), is_train=False)
         # else:
         #
-        image_dir, joint_file = "../../data/lspet/images", "../../data/lspet/joints.mat"
-        hg=self.hourglass
-        valdata = LSP_dataset(image_dir, joint_file,hg.inres,hg.outres,hg.num_hgstacks)
 
-        total_suc, total_fail = 0, 0
-        #0.2 means the predicted keyponits is within 20% of the original
-        threshold = 0.2
-
-        count = 0
-        batch_size = 8
-
-        for _img, _gthmap, _meta in valdata.generator(batch_size, is_shuffle=False, with_meta=True):
-
-            count += batch_size
-            # if count > valdata.get_dataset_size():
-            #WARNING this is cpu test code
-            #TODO set some cpu check code here to make it portable
-            if count > 10:
-                break
-            out = self.model.predict(_img)
-            suc, bad = cal_heatmap_acc(out[-1], _meta, threshold)
-
-            total_suc += suc
-            total_fail += bad
-
-        acc = total_suc*1.0 / (total_fail + total_suc)
-
-        print('Eval Accuray ', acc, '@ Epoch ', epoch)
-
-        with open(os.path.join(self.get_folder_path(), 'val.txt'), 'a+') as xfile:
-            xfile.write('Epoch ' + str(epoch) + ':' + str(acc) + '\n')
+        # image_dir, joint_file = "../../data/lspet/images", "../../data/lspet/joints.mat"
+        # hg=self.hourglass
+        # valdata = LSP_dataset(image_dir, joint_file,hg.inres,hg.outres,hg.num_hgstacks)
+        #
+        # total_suc, total_fail = 0, 0
+        # #0.2 means the predicted keyponits is within 20% of the original
+        # threshold = 0.2
+        #
+        # count = 0
+        # batch_size = 8
+        #
+        # for _img, _gthmap, _meta in valdata.generator(batch_size, is_shuffle=False, with_meta=True):
+        #
+        #     count += batch_size
+        #     # if count > valdata.get_dataset_size():
+        #     #WARNING this is cpu test code
+        #     #TODO set some cpu check code here to make it portable
+        #     if count > 10:
+        #         break
+        #     out = self.model.predict(_img)
+        #     suc, bad = cal_heatmap_acc(out[-1], _meta, threshold)
+        #
+        #     total_suc += suc
+        #     total_fail += bad
+        #
+        # acc = total_suc*1.0 / (total_fail + total_suc)
+        #
+        # print('Eval Accuray ', acc, '@ Epoch ', epoch)
+        #
+        # with open(os.path.join(self.get_folder_path(), 'val.txt'), 'a+') as xfile:
+        #     xfile.write('Epoch ' + str(epoch) + ':' + str(acc) + '\n')
+        pass
 
     def on_epoch_end(self, epoch, logs=None):
         # This is a walkaround to sovle model.save() issue
