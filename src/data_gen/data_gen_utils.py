@@ -2,8 +2,6 @@ import imgaug as ia
 import numpy as np
 import cv2
 
-
-
 def draw_image_with_joints(image,joint_list,colormap=None):
     test = np.copy(image).astype(np.uint8)
     draw_joints(test, joint_list,colormap)

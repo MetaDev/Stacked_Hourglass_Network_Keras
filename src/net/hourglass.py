@@ -10,7 +10,7 @@ import datetime
 import scipy.misc
 from data_gen.data_process import normalize
 import numpy as np
-from eval.eval_callback import EvalCallBack
+from eval.LSP_eval_callback import EvalCallBack
 
 class HourglassNet(object):
     # def get_output(self):
