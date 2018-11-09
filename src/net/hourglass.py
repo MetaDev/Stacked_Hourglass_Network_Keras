@@ -46,15 +46,31 @@ class HourglassNet(object):
                                  # validation_data=val_gen, validation_steps= val_dataset.get_dataset_size()//batch_size,
                                  epochs=epochs, callbacks=xcallbacks)
 
+    def trainMPII2(self, batch_size, model_path, epochs):
+        train_dataset = MPIIDataGen("../../data/mpii/mpii_annotations.json", "../../data/mpii/images",
+                                    inres=self.inres, outres=self.outres, is_train=True)
+        train_gen = train_dataset.generator(batch_size, self.num_hgstacks, sigma=1, is_shuffle=True,
+                                            rot_flag=True, scale_flag=True, flip_flag=True)
+        print(os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
+        csvlogger = CSVLogger(
+            os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
+
+        checkpoint = EvalCallBack(model_path,self)
+
+        xcallbacks = [csvlogger, checkpoint]
+
+        self.model.fit_generator(generator=train_gen, steps_per_epoch=train_dataset.get_dataset_size() // batch_size,
+                                 # validation_data=val_gen, validation_steps= val_dataset.get_dataset_size()//batch_size,
+                                 epochs=epochs, callbacks=xcallbacks)
     def train(self, batch_size, model_path, epochs):
         train_dataset = MPIIDataGen("../../data/mpii/mpii_annotations.json", "../../data/mpii/images",
-                                      inres=self.inres,  outres=self.outres, is_train=True)
-        train_gen = train_dataset.generator(batch_size, self.num_hgstacks, sigma=1, is_shuffle=True,
+                                      inres=self.inres,  outres=self.outres, num_hgstack=self.num_hgstacks,is_train=True)
+        train_gen = train_dataset.generator(batch_size,  sigma=1, is_shuffle=True,
                                             rot_flag=True, scale_flag=True, flip_flag=True)
         print(os.path.join(model_path, "csv_train_"+ str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
         csvlogger = CSVLogger(os.path.join(model_path, "csv_train_"+ str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
 
-        checkpoint =  EvalCallBack(model_path)
+        checkpoint =  EvalCallBack(model_path,self)
 
         xcallbacks = [csvlogger, checkpoint]
 

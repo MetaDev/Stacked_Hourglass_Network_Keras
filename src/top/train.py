@@ -42,13 +42,18 @@ if __name__ == "__main__":
     # Create a session with the above options specified.
     k.tensorflow_backend.set_session(tf.Session(config=config))
 
-    #!! canche num clases to 16 for MPII
-    xnet = HourglassNet(num_classes=14, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
 
-    if args.resume:
-        xnet.resume_train(batch_size=args.batch_size, model_json=args.resume_model_json, model_weights=args.resume_model,
-                          init_epoch=args.init_epoch, epochs=args.epochs)
-    else:
+    # if args.resume:
+    #     xnet.resume_train(batch_size=args.batch_size, model_json=args.resume_model_json, model_weights=args.resume_model,
+    #                       init_epoch=args.init_epoch, epochs=args.epochs)
+    MPII=False
+    if MPII==True:
+        xnet = HourglassNet(num_classes=16, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
+
         xnet.build_model(mobile=args.mobile, show=True)
-        # xnet.train(epochs=args.epochs, model_path=args.model_path, batch_size=args.batch_size)
+
+        xnet.train(epochs=args.epochs, model_path=args.model_path, batch_size=args.batch_size)
+    else:
+        xnet = HourglassNet(num_classes=14, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
+        xnet.build_model(mobile=args.mobile, show=True)
         xnet.train_lsp(epochs=args.epochs, model_path=args.model_path,data_path=args.data_path, batch_size=args.batch_size)

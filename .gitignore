@@ -3,4 +3,5 @@
 data/lsp/images/
 data/lspet/images/
 data/mpii/images/
+trained_models/
 *.bak
