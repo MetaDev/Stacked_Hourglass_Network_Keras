@@ -16,7 +16,7 @@ class EvalCallBack(keras.callbacks.Callback):
     def get_folder_path(self):
         return self.foldpath
 
-    def run_eval(self, epoch):
+    def run_eval(self, epoch,test_set):
         # if dataset=="MPII":
         #     valdata = MPIIDataGen("../../data/mpii/mpii_annotations.json",
         #                           "../../data/mpii/images",

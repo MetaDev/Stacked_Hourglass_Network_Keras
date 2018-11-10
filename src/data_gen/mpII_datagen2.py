@@ -68,6 +68,17 @@ class MPII_dataset(object):
     def get_dataset_size(self):
         return len(self.anno)
 
+    def _generator(self, batch_size, sigma=5, test_portion=0.02,is_shuffle=True, with_meta=False):
+        #choose random test fraction
+        test_idx=np.random.choice(np.arange(self.get_dataset_size()),self.get_dataset_size()//test_portion)
+        print(test_idx)
+        train_idx=list(set(np.arange(self.get_dataset_size()))-set(test_idx))
+        train_anno=self.anno[train_idx]
+        test_anno=self.anno[test_idx]
+        train_generator=self._generator(train_anno, batch_size, sigma, is_shuffle=is_shuffle, with_meta=with_meta)
+        test_gen=self._generator(test_anno, batch_size, sigma, is_shuffle=is_shuffle, with_meta=with_meta)
+        return train_gen,test_gen
+
     def generator(self, batch_size, sigma=5, is_shuffle=True, with_meta=False):
 
         '''
@@ -119,7 +130,11 @@ class MPII_dataset(object):
                 ])
                 #
                 seq_det = seq.to_deterministic()
-                image_aug = seq_det.augment_image(image)
+                try:
+                    image_aug = seq_det.augment_image(image)
+                except AssertionError:
+                    print(seq_det)
+                    print(image_aug.shape)
                 # augment keyponts accordingly
                 joint_list[:, :2] = apply_iaa_keypoints(seq_det, joint_list[:, :2], image.shape)
 
