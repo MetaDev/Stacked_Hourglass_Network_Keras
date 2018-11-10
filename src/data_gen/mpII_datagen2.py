@@ -128,21 +128,14 @@ class MPII_dataset(object):
                     iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
                     iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
                 ])
-                #
-                augm_it=True
-                a_it=0
-                #augment until no error occurs
-                while augm_it and a_it <10 :
-                    try:
-                        a_it+=1
-                        seq_det = seq.to_deterministic()
-                        image_aug = seq_det.augment_image(image)
-                    except AssertionError:
-                        #TODO write error to csv
-                        print()
-                        pass
-                    else:
-                        augm_it=False
+
+                try:
+                    seq_det = seq.to_deterministic()
+                    image_aug = seq_det.augment_image(image)
+                except AssertionError:
+                    print("iamge augm fail: ",seq_det,image.shape, flush=True )
+                    #if augmentation fails skip this image
+                    continue
                 # augment keyponts accordingly
                 joint_list[:, :2] = apply_iaa_keypoints(seq_det, joint_list[:, :2], image.shape)
 
