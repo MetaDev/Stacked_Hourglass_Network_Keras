@@ -129,12 +129,20 @@ class MPII_dataset(object):
                     iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
                 ])
                 #
-                seq_det = seq.to_deterministic()
-                try:
-                    image_aug = seq_det.augment_image(image)
-                except AssertionError:
-                    print(seq_det)
-                    print(image_aug.shape)
+                augm_it=True
+                a_it=0
+                #augment until no error occurs
+                while augm_it and a_it <10 :
+                    try:
+                        a_it+=1
+                        seq_det = seq.to_deterministic()
+                        image_aug = seq_det.augment_image(image)
+                    except AssertionError:
+                        #TODO write error to csv
+                        print()
+                        pass
+                    else:
+                        augm_it=False
                 # augment keyponts accordingly
                 joint_list[:, :2] = apply_iaa_keypoints(seq_det, joint_list[:, :2], image.shape)
 
@@ -146,11 +154,7 @@ class MPII_dataset(object):
 
                 # normalize image channels and scale the input image and keypoints respectively
                 img_scale = iaa.Scale({"height": inres[0], "width": inres[1]})
-                try:
-                    image_aug = img_scale.augment_image(image_aug)
-                except:
-                    print(image_aug.shape)
-                    print(inres)
+                image_aug = img_scale.augment_image(image_aug)
                 kp_scale = iaa.Scale({"height": outres[0], "width": outres[1]})
                 joint_list[:, :2] = apply_iaa_keypoints(kp_scale, joint_list[:, :2], outres)
                 image_aug = ((image_aug / 255.0) - mean) / std
