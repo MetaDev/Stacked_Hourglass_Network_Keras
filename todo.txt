@@ -1,3 +1,12 @@
+test
+
+inference with new dataset
+inference speed/accuracy
+
+figure out a way to compare trained models
+
+
+------------------------------------
 data augmentation
 
 #  add other interesting augmentation as such that less keypoints are lost e.g. PerspectiveTransform
@@ -7,6 +16,9 @@ data augmentation
 # add a filter if there is not enough joints present
 
 add LSP dataset to LSPET
+
+first train a model on the common joints and than finetune the final layer with the joints that are unique to
+certain datasets
 
 --------------------------------
 evaluation
