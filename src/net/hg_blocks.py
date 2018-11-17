@@ -16,14 +16,6 @@ def create_hourglass_network(num_classes, num_stacks, inres, outres, bottleneck)
     for i in range(num_stacks):
         head_next_stage, head_to_loss = hourglass_module(head_next_stage, num_classes, bottleneck, i)
         outputs.append(head_to_loss)
-        '''
-        if i == num_stacks - 1:
-            # last stage, append last head
-            last_head = Conv2D(num_classes, kernel_size=(1,1), activation='linear', padding='same') (head_next_stage)
-            outputs.append(last_head)
-        else:
-            outputs.append(head_to_loss)
-        '''
     model = Model(inputs=input, outputs=outputs)
     rms = RMSprop(lr=5e-4)
     model.compile(optimizer=rms, loss=mean_squared_error, metrics=["accuracy"])

@@ -3,8 +3,6 @@ test
 inference with new dataset
 inference speed/accuracy
 
-figure out a way to compare trained models
-
 
 ------------------------------------
 data augmentation
@@ -13,12 +11,16 @@ data augmentation
 # or contrary hide keypoints (using masks of other images) in image data with object to make model more robust
 
 #add a check if joints are outside the image, if so repeat augmentation
-# add a filter if there is not enough joints present
+# add a filter if there is not enough joints present !!!!!!!!!!
 
 add LSP dataset to LSPET
 
 first train a model on the common joints and than finetune the final layer with the joints that are unique to
 certain datasets
+
+#for practical applications and the use of multiple dataset we only use 14 joints
+#for now, it can be investigated that richer dataset can be used in such a way that for the
+#datasets with less joints it is simply set to invisible
 
 --------------------------------
 evaluation

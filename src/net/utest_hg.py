@@ -43,7 +43,7 @@ def main_test():
     valdata = MPIIDataGen("../../data/mpii/mpii_annotations.json", "../../data/mpii/images",
                                 inres=(256, 256), outres=(64, 64), is_train=False)
 
-    for _img, _gthmap in valdata.generator(1, 8, sigma=2, is_shuffle=True):
+    for _img, _gthmap in valdata.tt_generator(1, 8, sigma=2, is_shuffle=True):
         out = xnet.model.predict(_img)
 
         scipy.misc.imshow(_img[0,:,:,:])

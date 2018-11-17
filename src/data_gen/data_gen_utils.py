@@ -1,11 +1,13 @@
 import imgaug as ia
+from imgaug import parameters as iap
 import numpy as np
 import cv2
 from imgaug import augmenters as iaa
-
+import os
+from skimage import io
+from data_gen.data_process import generate_gtmap
 
 #standard joint order
-
 """"
 order of joints:
 
@@ -24,6 +26,7 @@ Left wrist
 Neck
 Head top
 """
+
 def image_with_joints(image,joint_list,colormap=None):
     test = np.copy(image).astype(np.uint8)
     paint_joints(test, joint_list, colormap)
@@ -109,3 +112,119 @@ def pose2keypoints( shape, pose):
 
 def apply_iaa_keypoints(iaa, keypoints, shape):
     return keypoints2pose(iaa.augment_keypoints([pose2keypoints(shape, keypoints)])[0])
+#TODO calculated on whole image dataset
+mean = np.array([0.485, 0.456, 0.406])
+std = np.array([0.229, 0.224, 0.225])
+N_JOINTS=14
+def n_joints_visible(joint_list):
+    return len([1 for joint in joint_list if joint[2]==1])
+class DataGen(object):
+    def _load_image_joints(self):
+        pass
+    def get_dataset_size(self):
+        return len(self.image_joints)
+    def __init__(self,image_dir,joint_file,inres, outres,num_hgstack):
+        #load dataset to be able to return the size
+        self.joint_file=joint_file
+        self.outres=outres
+        self.inres=inres
+        self.num_hgstack=num_hgstack
+        self.image_dir=image_dir
+        self.image_joints=self._load_image_joints()
+    def tt_generator(self, batch_size, sigma=5, test_portion=0.02, is_shuffle=True, with_meta=False):
+        #choose random test fraction
+        test_idx=np.random.choice(np.arange(self.get_dataset_size()),int(self.get_dataset_size()*test_portion),replace=False)
+        train_idx=list(set(np.arange(self.get_dataset_size()))-set(test_idx))
+
+        train_image_joints=self.image_joints[train_idx]
+        test_iamge_joints=self.image_joints[test_idx]
+
+        train_gen=self._generator(train_image_joints, batch_size, sigma, is_shuffle=is_shuffle, with_meta=with_meta)
+        test_gen=self._generator(test_iamge_joints, batch_size, sigma, is_shuffle=is_shuffle, with_meta=with_meta)
+        return train_gen,test_gen
+    def val_generator(self, batch_size, sigma=5):
+        val_gen=self._generator(self.image_joints, batch_size, sigma, is_shuffle=False, with_meta=True)
+        return val_gen
+    min_visible_joints=7
+    def _generator(self,image_joints, batch_size, sigma=5, is_shuffle=True, with_meta=False):
+
+        '''
+        Input:  batch_size * inres  * Channel (3)
+        Output: batch_size * oures  * nparts
+        '''
+
+        inres = self.inres
+        outres = self.outres
+        num_hgstack = self.num_hgstack
+        train_input = np.zeros(shape=(batch_size, inres[0], inres[1], 3), dtype=np.float)
+        gt_heatmap = np.zeros(shape=(batch_size, outres[0], outres[1], N_JOINTS), dtype=np.float)
+        meta_info = []
+        # create a batch of images and its heatmpas and yield it
+        while True:
+            if is_shuffle:
+                np.random.shuffle(image_joints)
+            for _i, image_joint in enumerate(image_joints):
+                batch_i = _i % batch_size
+                imagefile, joint_list = image_joint
+                if n_joints_visible(joint_list) < self.min_visible_joints:
+                    continue
+                image = io.imread(os.path.join(self.image_dir, imagefile))
+                box= get_bounding_box(joint_list, image)
+
+                # d_util.draw_image_with_joints(image, joints)
+                image = image[box[1]:box[3], box[0]:box[2], :]
+                joint_list[:, :2] = joint_list[:, :2] - np.array([box[0], box[1]])
+
+                #DEBUG
+                # im_j_before=image_with_joints(image,joint_list,colormap=LR_colormap)
+
+                # augment image data, apply 2 of the augmentations
+                # the augmentation doesn't take into account that flipping switches the semantic meaning of left and right
+                flip_j = lambda keypoints_on_images, random_state, parents, hooks: flip_symmetric_keypoints(
+                    keypoints_on_images)
+                noop = lambda images, random_state, parents, hooks: images
+                seq = iaa.SomeOf(2, [
+                    iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.5,1.0))),
+                    iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
+                    iaa.Sometimes(0.2,iaa.Sequential([iaa.Fliplr(1), iaa.Lambda(noop, flip_j)])),
+                    iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
+                    iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
+                ])
+
+                try:
+                    seq_det = seq.to_deterministic()
+                    image_aug = seq_det.augment_image(image)
+                except AssertionError:
+                    print("image augm fail: ",seq_det,image.shape, flush=True )
+                    #if augmentation fails skip this image
+                    continue
+                # augment keyponts accordingly
+                joint_list[:, :2] = apply_iaa_keypoints(seq_det, joint_list[:, :2], image.shape)
+
+                # show the images with joints visible
+                #DEBUG
+                # im_j_after=image_with_joints(image_aug, joint_list, colormap=LR_colormap)
+                # draw_images([im_j_before,im_j_after])
+
+
+                # normalize image channels and scale the input image and keypoints respectively
+                img_scale = iaa.Scale({"height": inres[0], "width": inres[1]})
+                image_aug = img_scale.augment_image(image_aug)
+                kp_scale = iaa.Scale({"height": outres[0], "width": outres[1]})
+                joint_list[:, :2] = apply_iaa_keypoints(kp_scale, joint_list[:, :2], outres)
+                image_aug = ((image_aug / 255.0) - mean) / std
+
+                train_input[batch_i, :, :, :] = image_aug
+
+                gt_hmp = generate_gtmap(joint_list, sigma, outres)
+                gt_heatmap[batch_i, :, :, :] = gt_hmp
+                # save keypoints that created the heatmap
+                meta_info.append({'joint_list': joint_list})
+                if batch_i == (batch_size - 1):
+                    out_hmaps = [gt_heatmap] * num_hgstack
+                    if not with_meta:
+                        yield train_input, out_hmaps
+                    else:
+                        yield train_input, out_hmaps, meta_info
+                        meta_info = []
+

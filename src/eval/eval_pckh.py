@@ -38,7 +38,7 @@ def main_test():
 
     count = 0
     batch_size = 8
-    for _img, _gthmap, _meta in valdata.generator(batch_size, 8, sigma=2, is_shuffle=False , with_meta=True):
+    for _img, _gthmap, _meta in valdata.tt_generator(batch_size, 8, sigma=2, is_shuffle=False , with_meta=True):
 
         count += batch_size
 
