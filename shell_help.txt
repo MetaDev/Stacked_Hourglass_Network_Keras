@@ -1,0 +1,159 @@
+start:
+
+connect to node (in directory node_acces, check IGEnt VPN!!)
+
+ssh -A -X -i id_rsa -i 7292011c15b739c3663ad1c35b12ee92.pem jstaley@n086-05.wall2.ilabt.iminds.be -oPort=22 
+
+Jupiter notebook
+
+in SSH shell in proper directory (make a named screen first): 
+jupyter notebook --no-browser --port=8080
+
+local (tunnelling) :
+ssh -N -L 8080:localhost:8080 -A -X -i id_rsa -i 7292011c15b739c3663ad1c35b12ee92.pem jstaley@n086-05.wall2.ilabt.iminds.be -oPort=22
+
+(in browser, might require token from jupiter notebook command)
+http://localhost:8080/
+
+passphrase
+r0ZnlWVMclT2
+
+on startup working directory
+
+cd /media/ssddata/jstaley/pose_estimation/Stacked_Hourglass_Network_Keras
+
+set environment
+
+source activate py35 #for coreml compatibility (py36)
+
+__________________________
+
+training command in keras repo
+#start a screen first, to activate a conda environment activate/deactivate twice
+
+python train.py --gpuID 0 --epochs 100 --batch_size 8 --num_stack 2 --mobile True --model_path ../../trained_models/MPII_original
+
+python demo.py --gpuID 0 --model_json ../../trained_models/hg_s2_b1_m/net_arch.json  --model_weights ../../trained_models/hg_s2_b1_m/weights_epoch99.h5  --conf_threshold 0.1 --input_image ../../images/sample.jpg
+
+-------------------------
+
+
+
+----------------------
+
+pycharm:
+for new project to recognize self written imports go to settings->project->structure->right mouse on folder that has source files and make it a source folder
+this adds them to your ptyhon path, a bette way is to use absolute imports
+
+-----------------------------------------
+When working on a server and a script has to be run for several hours
+use screen -S name
+ctrl a,d will detach from this screen
+ctrl r will reattach with it
+“Ctrl-a” “H”, creates a running log of the session
+
+kill a session:
+
+first you need to re attach to the screen session
+screen -r 23520 as you have done. Then press ctrl + a and then a capital K and press y
+
+You can quit that screen without attaching to it. First, find its session and then quit it:
+$ screen -ls
+$ screen -X -S [session # you want to kill] quit
+
+--------------------------------------
+
+run python on node:
+
+CUDA_VISIBLE_DEVICES=1 python train_movement.py
+
+-----------------------
+find bashscript for python path:
+in ~/.bashrsc
+-----------------------
+
+mount node (almost working)
+
+
+sudo sshfs -o debug,sshfs_debug,loglevel=debug -o ssh_command='ssh -A -X -i /Users/Harald/Github/Node_Access/id_rsa -i /Users/Harald/Github/Node_Access/7292011c15b739c3663ad1c35b12ee92.pem jstaley@n086-05.wall2.ilabt.iminds.be -oPort=22' jstaley@n086-05.wall2.ilabt.iminds.be:/media/ssddata/pose_estimation/LIFTkit-models node_fs/
+
+
+----------------------------
+
+git merge message:
+
+
+press "i"
+write your merge message
+press "esc"
+write ":wq"
+then press enter
+
+--------------------------
+
+to remove big files
+git rm --cached $FILE
+echo $FILE >> .gitignore
+git add .gitignore
+git commit --amend --no-edit
+git reflog expire --expire=now --all && git gc --prune=now --aggressive
+
+you have to use BFG Repo-Cleaner if the files are more than one commit deep
+
+--------------------
+
+for big files for now use drive:
+
+add below function to ~/.bash_aliases
+
+function gdrive_download () {
+  CONFIRM=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate "https://docs.google.com/uc?export=download&id=$1" -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')
+  wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$CONFIRM&id=$1" -O $2
+  rm -rf /tmp/cookies.txt
+}
+
+Usage:
+gdrive_download long_google_drive_file_id filename.ext
+
+-----------------
+
+better use rsync
+
+rsync -uanv ~/code jstaley@n086-05.wall2.ilabt.iminds.be:~/Projects/pose_estimation/LIFTkit-models
+
+-----------------
+
+ add big files to repo
+
+git lfs install
+
+(or edit .gitattributes)
+git lfs track "*.psd"
+
+git add .gitattributes
+
+git add file.psd
+git commit -m "Add design file"
+git push origin master
+
+----------------------------
+sync files:
+
+to pull straight from the branch on node
+
+or git stash && git pull
+
+or
+
+git fetch origin master && git reset --hard FETCH_HEAD && git clean -df
+
+--------------------------
+connect to vpn
+
+use ethernet cable
+
+-----------------------
+
+monitor gpu usage
+
+------------------------
