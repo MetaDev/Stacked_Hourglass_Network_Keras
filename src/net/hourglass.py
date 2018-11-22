@@ -1,6 +1,6 @@
 
 import os
-from net.hg_blocks import create_hourglass_network, bottleneck_block, bottleneck_mobile
+from net.hg_blocks import create_hourglass_network, bottleneck_mobile
 from data_gen.mpii_datagen import MPIIDataGen
 from keras.callbacks import CSVLogger
 from keras.models import model_from_json
@@ -21,15 +21,14 @@ class HourglassNet(object):
         self.outres = outres
 
 
-    def build_model(self, mobile=False, show=False):
-        if mobile:
+    def build_model(self, mobile="v1", show=False):
+        if mobile=="v1":
             self.model = create_hourglass_network(self.num_classes, self.num_hgstacks, self.inres, self.outres, bottleneck_mobile)
-        else:
-            self.model = create_hourglass_network(self.num_classes, self.num_hgstacks, self.inres, self.outres, bottleneck_block)
+
         # show model summary and layer name
         if show :
             self.model.summary()
-    def train(self,data_gen_class,batch_size,model_path,data_path, epochs,debug=True):
+    def train(self,data_gen_class,batch_size,model_path,data_path, epochs,debug=False):
         data_set=data_gen_class(os.path.join(data_path,data_gen_class.image_dir),
                                 os.path.join(data_path,data_gen_class.joint_file),
                                  self.inres, self.outres, self.num_hgstacks)
@@ -57,7 +56,6 @@ class HourglassNet(object):
                                       inres=self.inres,  outres=self.outres, num_hgstack=self.num_hgstacks)
         train_gen = train_dataset.generator(batch_size,  sigma=1, is_shuffle=True,
                                             rot_flag=True, scale_flag=True, flip_flag=True)
-        print(os.path.join(model_path, "csv_train_"+ str(datetime.datetime.now().strftime('%d_%m-%H_%M')) + ".csv"))
         csvlogger = CSVLogger(os.path.join(model_path, "csv_train_"+ str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
 
         checkpoint =  EvalCallBack(model_path,self)

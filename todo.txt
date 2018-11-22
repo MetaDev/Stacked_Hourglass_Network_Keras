@@ -10,6 +10,8 @@ data augmentation
 #  add other interesting augmentation as such that less keypoints are lost e.g. PerspectiveTransform
 # or contrary hide keypoints (using masks of other images) in image data with object to make model more robust
 
+https://github.com/isarandi/synthetic-occlusion (proven in research)
+
 #add a check if joints are outside the image, if so repeat augmentation
 # add a filter if there is not enough joints present !!!!!!!!!!
 
@@ -47,3 +49,8 @@ CoreML
 
 rewrite loss to work in 4 dimensions (concat stacks) --> also reduces batch footprint
 
+---------------------------
+
+Models
+
+https://github.com/ashwhall/dsnt/blob/master/DSNT_example.ipynb
