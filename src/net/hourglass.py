@@ -21,14 +21,11 @@ class HourglassNet(object):
         self.outres = outres
 
 
-    def build_model(self, mobile="v1", show=False):
-        if mobile=="v1":
-            self.model = create_hourglass_network(self.num_classes, self.num_hgstacks, self.inres, self.outres, bottleneck_mobile)
+    def build_model(self, mobile="v1"):
+        self.model = create_hourglass_network(self.num_classes, self.num_hgstacks, self.inres, self.outres, bottleneck_mobile)
 
-        # show model summary and layer name
-        if show :
-            self.model.summary()
-    def train(self,data_gen_class,batch_size,model_path,data_path, epochs,debug=False):
+
+    def train(self,data_gen_class,batch_size,model_path,data_path, epochs,debug=True):
         data_set=data_gen_class(os.path.join(data_path,data_gen_class.image_dir),
                                 os.path.join(data_path,data_gen_class.joint_file),
                                  self.inres, self.outres, self.num_hgstacks)
@@ -53,14 +50,14 @@ class HourglassNet(object):
 
     def train_old(self, batch_size, model_path, epochs):
         train_dataset = MPIIDataGen("../../data/mpii/mpii_annotations.json", "../../data/mpii/images",
-                                      inres=self.inres,  outres=self.outres, num_hgstack=self.num_hgstacks)
+                                      inres=self.inres,  outres=self.outres, num_hgstack=self.num_hgstacks,is_train=True)
         train_gen = train_dataset.generator(batch_size,  sigma=1, is_shuffle=True,
                                             rot_flag=True, scale_flag=True, flip_flag=True)
         csvlogger = CSVLogger(os.path.join(model_path, "csv_train_"+ str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
 
-        checkpoint =  EvalCallBack(model_path,self)
+        # checkpoint =  EvalCallBack(model_path,self)
 
-        xcallbacks = [csvlogger, checkpoint]
+        xcallbacks = [csvlogger]
 
         self.model.fit_generator(generator=train_gen, steps_per_epoch=train_dataset.get_dataset_size()//batch_size,
                                  #validation_data=val_gen, validation_steps= val_dataset.get_dataset_size()//batch_size,

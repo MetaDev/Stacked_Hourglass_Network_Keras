@@ -7,4 +7,3 @@ tensorflow==1.11.0
 numpy==1.14.3
 opencv_python==3.4.3.18
 ntpath==1534770254.427198
-skimage==0.0

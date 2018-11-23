@@ -19,10 +19,6 @@ if __name__ == "__main__":
     parser.add_argument("--data_path", default="../../data", help='path where data is stored')
     parser.add_argument("--num_stack",  default=2, type=int, help='num of stacks')
     parser.add_argument("--epochs", default=1, type=int, help="number of traning epochs")
-    parser.add_argument("--resume", default=False, type=bool,  help="resume training or not")
-    parser.add_argument("--resume_model", help="start point to retrain")
-    parser.add_argument("--resume_model_json", help="model json")
-    parser.add_argument("--init_epoch", type=int, help="epoch to resume")
 
     args = parser.parse_args()
 
@@ -47,22 +43,22 @@ if __name__ == "__main__":
     #     xnet.resume_train(batch_size=args.batch_size, model_json=args.resume_model_json, model_weights=args.resume_model,
     #                       init_epoch=args.init_epoch, epochs=args.epochs)
     #MPII old, MPII new amd LSP
-    data=[0,1,2][2]
+    data=[0,1,2][0]
     from data_gen.lsp_datgen import LSP_dataset
     from data_gen.mpII_datagen2 import MPII_dataset
 
     if data==0:
         xnet = HourglassNet(num_classes=16, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
 
-        xnet.build_model(mobile=args.mobile, show=True)
+        xnet.build_model(mobile=args.mobile)
 
         xnet.train_old(epochs=args.epochs, model_path=args.model_path, batch_size=args.batch_size)
     elif data==1:
         xnet = HourglassNet(num_classes=14, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
-        xnet.build_model(mobile="v1", show=True)
+        xnet.build_model(mobile="v1")
         xnet.train(MPII_dataset,epochs=args.epochs, model_path=args.model_path, data_path=args.data_path,
                        batch_size=args.batch_size)
     elif data==2:
         xnet = HourglassNet(num_classes=14, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
-        xnet.build_model(mobile="v1", show=True)
+        xnet.build_model(mobile="v1")
         xnet.train(LSP_dataset,epochs=args.epochs, model_path=args.model_path,data_path=args.data_path, batch_size=args.batch_size)
