@@ -209,7 +209,14 @@ class DataGen(object):
 
                 # normalize image channels and scale the input image and keypoints respectively
                 img_scale = iaa.Scale({"height": inres[0], "width": inres[1]})
-                image_aug = img_scale.augment_image(image_aug)
+                try:
+                    image_aug = img_scale.augment_image(image_aug)
+                except AssertionError:
+                    print("image inres scale fail: ", img_scale , inres , image_aug.shape, flush=True)
+                    # if augmentation fails skip this image
+                    continue
+
+
                 kp_scale = iaa.Scale({"height": outres[0], "width": outres[1]})
                 joint_list[:, :2] = apply_iaa_keypoints(kp_scale, joint_list[:, :2], outres)
                 image_aug = ((image_aug / 255.0) - mean) / std
