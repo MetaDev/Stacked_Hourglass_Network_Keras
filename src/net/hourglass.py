@@ -5,12 +5,12 @@ from data_gen.mpii_datagen import MPIIDataGen
 from keras.callbacks import CSVLogger
 from keras.models import model_from_json
 
-
 import datetime
 import scipy.misc
 from data_gen.data_process import normalize
 import numpy as np
 from eval.eval_callback import EvalCallBack
+import tools.flags as fl
 class HourglassNet(object):
     output_scale = 4
     # def get_output(self):
@@ -41,7 +41,8 @@ class HourglassNet(object):
         train_steps = (data_set.get_dataset_size() * (1 - test_fract)) // batch_size
         test_steps = (data_set.get_dataset_size() * (test_fract)) // batch_size
         #DEBUG
-        if debug:
+        print(fl.DEBUG)
+        if fl.DEBUG:
             train_steps,test_steps=1,1
         self.model.fit_generator(generator=train_gen, steps_per_epoch=train_steps,
                                  validation_data=test_gen, validation_steps=test_steps,

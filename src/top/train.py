@@ -44,7 +44,7 @@ if __name__ == "__main__":
     #     xnet.resume_train(batch_size=args.batch_size, model_json=args.resume_model_json, model_weights=args.resume_model,
     #                       init_epoch=args.init_epoch, epochs=args.epochs)
     #MPII old, MPII new amd LSP
-    data=[0,1,2][0]
+    data=[0,1,2][1]
     from data_gen.lsp_datgen import LSP_dataset
     from data_gen.mpII_datagen2 import MPII_dataset
 

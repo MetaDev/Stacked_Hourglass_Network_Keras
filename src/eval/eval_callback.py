@@ -2,7 +2,7 @@ import keras
 import os
 import numpy as np
 from eval.heatmap_process import post_process_heatmap
-
+import tools.flags as fl
 #this data structure defines the limb which its length is used to normalise the keypoint error of the first joint in
 #the tuple
 #the reason to do it this way is that joints which are missing are often due to sideview images where
@@ -24,7 +24,7 @@ class EvalCallBack(keras.callbacks.Callback):
     def run_eval(self, epoch,debug=True):
         joint_acc=[[] for i in range(dgu.N_JOINTS)]
         data_it = self.generator
-        if debug:
+        if fl.DEBUG:
             import itertools
             data_it = itertools.islice(data_it,2)
         for _imgs, _gthmaps,_metas in data_it:
