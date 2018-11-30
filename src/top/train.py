@@ -19,7 +19,7 @@ if __name__ == "__main__":
     parser.add_argument("--data_path", default="../../data", help='path where data is stored')
     parser.add_argument("--num_stack",  default=1, type=int, help='num of stacks')
     parser.add_argument("--epochs", default=1, type=int, help="number of traning epochs")
-    parser.add_argument("--data", default=2, type=int, help="data set and processing to use")
+    parser.add_argument("--data", default=0, type=int, help="data set and processing to use")
 
     #add aruguemnt for model and data type
 

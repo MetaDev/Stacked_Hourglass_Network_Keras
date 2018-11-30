@@ -9,7 +9,7 @@ import datetime
 import scipy.misc
 
 import numpy as np
-from eval.eval_callback import EvalCallBack
+from eval.train_callback import EvalCallBack, SaveCallBack
 import tools.flags as fl
 import data_gen.data_gen_utils as dg
 from imgaug import augmenters as iaa
@@ -37,9 +37,10 @@ class HourglassNet(object):
         csvlogger = CSVLogger(
             os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%d_%m-%H_%M')) + ".csv"))
         val_gen=data_set.val_generator(batch_size)
-        checkpoint = EvalCallBack(model_path,self,val_gen)
+        model_logger = SaveCallBack(model_path,self)
+        eval_logger = EvalCallBack(model_path,self,val_gen)
 
-        xcallbacks = [csvlogger,checkpoint]
+        xcallbacks = [csvlogger,eval_logger,model_logger]
 
         train_steps = (data_set.get_dataset_size() * (1 - test_fract)) // batch_size
         test_steps = (data_set.get_dataset_size() * (test_fract)) // batch_size
@@ -52,17 +53,22 @@ class HourglassNet(object):
 
 
     def train_old(self, batch_size, model_path, epochs):
-        train_dataset = MPIIDataGen("../../data/mpii/mpii_annotations.json", "../../data/mpii/images",
+        data_set = MPIIDataGen("../../data/mpii/mpii_annotations.json", "../../data/mpii/images",
                                       inres=self.inres,  outres=self.outres, num_hgstack=self.num_hgstacks,is_train=True)
-        train_gen = train_dataset.generator(batch_size,  sigma=1, is_shuffle=True,
+        train_gen = data_set.generator(batch_size,  sigma=1, is_shuffle=True,
                                             rot_flag=True, scale_flag=True, flip_flag=True)
         csvlogger = CSVLogger(os.path.join(model_path, "csv_train_"+ str(datetime.datetime.now().strftime('%H:%M')) + ".csv"))
 
-        # checkpoint =  EvalCallBack(model_path,self)
+        model_logger = SaveCallBack(model_path, self)
 
-        xcallbacks = [csvlogger]
+        xcallbacks = [csvlogger, model_logger]
+        train_steps = data_set.get_dataset_size()  // batch_size
 
-        self.model.fit_generator(generator=train_gen, steps_per_epoch=train_dataset.get_dataset_size()//batch_size,
+        # DEBUG
+        if fl.DEBUG:
+            train_steps, test_steps = 1, 1
+
+        self.model.fit_generator(generator=train_gen, steps_per_epoch=train_steps,
                                  #validation_data=val_gen, validation_steps= val_dataset.get_dataset_size()//batch_size,
                                  epochs=epochs, callbacks=xcallbacks)
 
