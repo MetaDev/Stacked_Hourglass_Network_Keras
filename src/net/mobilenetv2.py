@@ -19,7 +19,7 @@ from keras.losses import mean_squared_error
 import os
 from keras.callbacks import CSVLogger
 import datetime
-from eval.eval_callback import EvalCallBack
+from eval.train_callback import EvalCallBack
 import tools.flags as fl
 from keras.backend import int_shape
 relu6 = lambda x : K.relu(x,max_value=6)
