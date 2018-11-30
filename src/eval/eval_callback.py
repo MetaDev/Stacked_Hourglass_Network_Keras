@@ -61,10 +61,9 @@ class EvalCallBack(keras.callbacks.Callback):
         # in which large network can't be saved due to size.
         
         # save model to json
-        if epoch == 0:
-            jsonfile = os.path.join(self.foldpath, "net_arch.json")
-            with open(jsonfile, 'w') as f:
-                f.write(self.hourglass.model.to_json())
+        jsonfile = os.path.join(self.foldpath, "net_arch.json")
+        with open(jsonfile, 'w') as f:
+            f.write(self.hourglass.model.to_json())
 
         # save weights
         modelName = os.path.join(self.foldpath, "weights_epoch" + str(epoch) + ".h5")

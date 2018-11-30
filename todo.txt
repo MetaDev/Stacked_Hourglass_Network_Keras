@@ -54,3 +54,7 @@ rewrite loss to work in 4 dimensions (concat stacks) --> also reduces batch foot
 Models
 
 https://github.com/ashwhall/dsnt/blob/master/DSNT_example.ipynb
+
+downscale model:
+reduce num stacks or input/output resolution
+use regression model
