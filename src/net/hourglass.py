@@ -7,10 +7,11 @@ from keras.models import model_from_json
 
 import datetime
 import scipy.misc
-from data_gen.data_process import normalize
+
 import numpy as np
 from eval.eval_callback import EvalCallBack
 import tools.flags as fl
+import data_gen.data_gen_utils as dg
 class HourglassNet(object):
     output_scale = 4
     # def get_output(self):
@@ -75,6 +76,7 @@ class HourglassNet(object):
     def load_model(self, modelfile):
             self.model = load_model(modelfile, custom_objects={'euclidean_loss': euclidean_loss})
     '''
+
     def inference_rgb(self, rgbdata, orgshape):
         import data_gen
 
@@ -83,16 +85,18 @@ class HourglassNet(object):
         #WARNING unchecked code
         mean = data_gen.data_gen_utils.mean
 
-        imgdata = normalize(imgdata, mean)
+        imgdata = dg.normalize_img(imgdata)
 
         input = imgdata[np.newaxis, :, :, :]
         #WARNING this code only works of there are more than 1 stack
         out = self.model.predict(input)
-        return out[-1], scale
+        if self.num_hgstacks > 1:
+            out=out[-1]
+        return out, scale
 
-    def inference_file(self, imgfile, mean=None):
-        imgdata = scipy.misc.imread(imgfile)
-        ret = self.inference_rgb(imgdata, imgdata.shape, mean)
+    def inference_file(self, imgfile):
+        imgdata = dg.read_img_file(imgfile)
+        ret = self.inference_rgb(imgdata, imgdata.shape)
         return ret
 
 
