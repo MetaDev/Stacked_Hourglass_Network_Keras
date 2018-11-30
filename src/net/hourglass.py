@@ -90,9 +90,9 @@ class HourglassNet(object):
         out = self.model.predict(input)
         return out[-1], scale
 
-    def inference_file(self, imgfile, mean=None):
+    def inference_file(self, imgfile):
         imgdata = scipy.misc.imread(imgfile)
-        ret = self.inference_rgb(imgdata, imgdata.shape, mean)
+        ret = self.inference_rgb(imgdata, imgdata.shape)
         return ret
 
 
