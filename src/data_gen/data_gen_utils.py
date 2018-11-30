@@ -115,6 +115,8 @@ def apply_iaa_keypoints(iaa, keypoints, shape):
 #TODO calculated on whole image dataset
 mean = np.array([0.485, 0.456, 0.406])
 std = np.array([0.229, 0.224, 0.225])
+
+
 N_JOINTS=14
 def n_joints_visible(joint_list):
     return len([1 for joint in joint_list if joint[2]==1])
@@ -172,7 +174,9 @@ class DataGen(object):
                 imagefile, joint_list = image_joint
                 if n_joints_visible(joint_list) < self.min_visible_joints:
                     continue
-                image = io.imread(os.path.join(self.image_dir, imagefile))
+                image = read_img_file(os.path.join(self.image_dir, imagefile))
+                if np.any(image.shape) < 10:
+                    continue
                 box= get_bounding_box(joint_list, image)
 
                 # d_util.draw_image_with_joints(image, joints)
@@ -199,7 +203,7 @@ class DataGen(object):
                     seq_det = seq.to_deterministic()
                     image_aug = seq_det.augment_image(image)
                 except AssertionError:
-                    print("image augm fail: ",seq_det,image.shape, flush=True )
+                    print("image augm fail: ",imagefile,image.shape, flush=True )
                     #if augmentation fails skip this image
                     continue
                 # augment keyponts accordingly
@@ -223,7 +227,7 @@ class DataGen(object):
 
                 kp_scale = iaa.Scale({"height": outres[0], "width": outres[1]})
                 joint_list[:, :2] = apply_iaa_keypoints(kp_scale, joint_list[:, :2], outres)
-                image_aug = ((image_aug / 255.0) - mean) / std
+                image_aug = normalize_img(image_aug)
 
                 train_input[batch_i, :, :, :] = image_aug
 
@@ -245,4 +249,13 @@ class DataGen(object):
                         else:
                             yield train_input, out_hmaps, meta_info
                             meta_info = []
+def read_img_file(img_file):
+    return io.imread(img_file)
 
+def normalize_img(img_data):
+    '''
+    :param imgdata: image in 0 ~ 255
+    :return:  image from 0.0 to 1.0
+    '''
+
+    return ((img_data / 255.0) - mean) / std
