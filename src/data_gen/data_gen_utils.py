@@ -131,7 +131,7 @@ class DataGen(object):
         self.num_hgstack=num_hgstack
         self.image_dir=image_dir
         self.image_joints=self._load_image_joints()
-    def tt_generator(self, batch_size, sigma=5, test_portion=0.02, is_shuffle=True, with_meta=False):
+    def tt_generator(self, batch_size,sigma=5, test_portion=0.02, is_shuffle=True,coord_regression=False, with_meta=False):
         #choose random test fraction
         test_idx=np.random.choice(np.arange(self.get_dataset_size()),int(self.get_dataset_size()*test_portion),replace=False)
         train_idx=list(set(np.arange(self.get_dataset_size()))-set(test_idx))
@@ -139,14 +139,16 @@ class DataGen(object):
         train_image_joints=self.image_joints[train_idx]
         test_iamge_joints=self.image_joints[test_idx]
 
-        train_gen=self._generator(train_image_joints, batch_size, sigma, is_shuffle=is_shuffle, with_meta=with_meta)
-        test_gen=self._generator(test_iamge_joints, batch_size, sigma, is_shuffle=is_shuffle, with_meta=with_meta)
+        train_gen=self._generator(train_image_joints, batch_size, sigma, is_shuffle=is_shuffle,
+                                  coord_regression=coord_regression, with_meta=with_meta)
+        test_gen=self._generator(test_iamge_joints, batch_size, sigma, is_shuffle=is_shuffle,
+                                 coord_regression=coord_regression, with_meta=with_meta)
         return train_gen,test_gen
     def val_generator(self, batch_size, sigma=5):
         val_gen=self._generator(self.image_joints, batch_size, sigma, is_shuffle=False, with_meta=True)
         return val_gen
     min_visible_joints=7
-    def _generator(self,image_joints, batch_size, sigma=5, is_shuffle=True, with_meta=False):
+    def _generator(self,image_joints, batch_size, sigma=5, is_shuffle=True,coord_regression=False, with_meta=False):
 
         '''
         Input:  batch_size * inres  * Channel (3)
@@ -158,6 +160,8 @@ class DataGen(object):
         num_hgstack = self.num_hgstack
         train_input = np.zeros(shape=(batch_size, inres[0], inres[1], 3), dtype=np.float)
         gt_heatmap = np.zeros(shape=(batch_size, outres[0], outres[1], N_JOINTS), dtype=np.float)
+        gt_coord = np.zeros(shape=(batch_size, N_JOINTS *2 ), dtype=np.float)
+
         meta_info = []
         # create a batch of images and its heatmpas and yield it
         while True:
@@ -225,13 +229,20 @@ class DataGen(object):
 
                 gt_hmp = generate_gtmap(joint_list, sigma, outres)
                 gt_heatmap[batch_i, :, :, :] = gt_hmp
+                #batch, joint, coord
+                #normalise joint coords
+                gt_coord[batch_i, :] = (joint_list[:,:2]/np.array(outres)).flatten()
                 # save keypoints that created the heatmap
-                meta_info.append({'joint_list': joint_list})
+                if with_meta:
+                    meta_info.append({'joint_list': joint_list})
                 if batch_i == (batch_size - 1):
-                    out_hmaps = [gt_heatmap] * num_hgstack
-                    if not with_meta:
-                        yield train_input, out_hmaps
+                    if coord_regression:
+                        yield train_input, gt_coord
                     else:
-                        yield train_input, out_hmaps, meta_info
-                        meta_info = []
+                        out_hmaps = [gt_heatmap] * num_hgstack
+                        if not with_meta:
+                            yield train_input, out_hmaps
+                        else:
+                            yield train_input, out_hmaps, meta_info
+                            meta_info = []
 

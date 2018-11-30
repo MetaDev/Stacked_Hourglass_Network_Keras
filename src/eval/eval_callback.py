@@ -21,7 +21,7 @@ class EvalCallBack(keras.callbacks.Callback):
     def get_folder_path(self):
         return self.foldpath
 
-    def run_eval(self, epoch,debug=True):
+    def run_eval(self, epoch):
         joint_acc=[[] for i in range(dgu.N_JOINTS)]
         data_it = self.generator
         if fl.DEBUG:
@@ -39,7 +39,9 @@ class EvalCallBack(keras.callbacks.Callback):
                 gt_kps=_meta["joint_list"]
                 for jl in joint_eval_limb:
                     #if the limb is visible in the ground truth, than the distance can be normalised
-                    if (gt_kps[jl[0]][2] == 1 and gt_kps[jl[1]][2] == 1):
+                    joint0=gt_kps[jl[0]]
+                    joint1=gt_kps[jl[1]]
+                    if (joint0[2] == 1 and joint1[2] == 1 and joint0 is not joint1):
                         limb_dist=np.linalg.norm(gt_kps[jl[0]][0:2]-gt_kps[jl[1]][0:2])
                         pred_kp=np.array(pre_kps[jl[0]][0:2])*self.hourglass.output_scale
                         gt_kp=gt_kps[jl[0]][0:2]

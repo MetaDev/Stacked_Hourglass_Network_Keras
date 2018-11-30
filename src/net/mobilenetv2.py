@@ -12,10 +12,16 @@ from keras.layers import Input, Conv2D, AveragePooling2D, Dropout
 from keras.layers import Activation, BatchNormalization, add, Reshape, Dense
 
 from keras.layers import DepthwiseConv2D
-from keras.utils.vis_utils import plot_model
 
+from keras.optimizers import SGD
 from keras import backend as K
-
+from keras.losses import mean_squared_error
+import os
+from keras.callbacks import CSVLogger
+import datetime
+from eval.eval_callback import EvalCallBack
+import tools.flags as fl
+from keras.backend import int_shape
 relu6 = lambda x : K.relu(x,max_value=6)
 
 def _conv_block(inputs, filters, kernel, strides):
@@ -106,42 +112,60 @@ def _inverted_residual_block(inputs, filters, kernel, t, strides, n):
 
     return x
 
+class MobileNetV2(object):
+    def __init__(self, num_classes, inres):
+        self.num_classes = num_classes
 
-def MobileNetv2(input_shape,k):
-    """MobileNetv2
-    This function defines a MobileNetv2 architectures.
+        self.inres = inres
+        self.outres=inres
+        self.num_hgstacks=1
 
-    # Arguments
-        input_shape: An integer or tuple/list of 3 integers, shape
-            of input tensor.
-        k: Integer, number of classes.
-    # Returns
-        MobileNetv2 model.
-    """
+    def build_model(self):
+        input_shape=(*self.inres,3)
+        inputs = Input(shape=input_shape)
+        k=self.num_classes*2
+        x = _conv_block(inputs, 32, (3, 3), strides=(2, 2))
 
-    inputs = Input(shape=input_shape)
-    x = _conv_block(inputs, 32, (3, 3), strides=(2, 2))
+        x = _inverted_residual_block(x, 16, (3, 3), t=1, strides=1, n=1)
+        x = _inverted_residual_block(x, 24, (3, 3), t=6, strides=2, n=2)
+        x = _inverted_residual_block(x, 32, (3, 3), t=6, strides=2, n=3)
+        x = _inverted_residual_block(x, 64, (3, 3), t=6, strides=2, n=4)
+        x = _inverted_residual_block(x, 96, (3, 3), t=6, strides=1, n=3)
+        x = _inverted_residual_block(x, 160, (3, 3), t=6, strides=2, n=3)
+        x = _inverted_residual_block(x, 320, (3, 3), t=6, strides=1, n=1)
 
-    x = _inverted_residual_block(x, 16, (3, 3), t=1, strides=1, n=1)
-    x = _inverted_residual_block(x, 24, (3, 3), t=6, strides=2, n=2)
-    x = _inverted_residual_block(x, 32, (3, 3), t=6, strides=2, n=3)
-    x = _inverted_residual_block(x, 64, (3, 3), t=6, strides=2, n=4)
-    x = _inverted_residual_block(x, 96, (3, 3), t=6, strides=1, n=3)
-    x = _inverted_residual_block(x, 160, (3, 3), t=6, strides=2, n=3)
-    x = _inverted_residual_block(x, 320, (3, 3), t=6, strides=1, n=1)
+        x = _conv_block(x, 1280, (1, 1), strides=(1, 1))
+        x = AveragePooling2D(input_shape[0]//32)(x)
+        x = Reshape((1, 1, 1280))(x)
+        x = Dropout(0.3, name='Dropout')(x)
+        x = Dense(k)(x)
+        # x = Conv2D(k, (1, 1), padding='same')(x)
+        output = Reshape((k,))(x)
+        model = Model(inputs, output)
+        rms = SGD(lr=1e-05,momentum=0.9)
+        model.compile(optimizer=rms, loss=mean_squared_error, metrics=["accuracy"])
+        print("Model nr. params: ", model.count_params())
 
-    x = _conv_block(x, 1280, (1, 1), strides=(1, 1))
-    x = AveragePooling2D(input_shape[0]//32)(x)
-    x = Reshape((1, 1, 1280))(x)
-    x = Dropout(0.3, name='Dropout')(x)
-    x = Dense(k)(x)
-    # x = Conv2D(k, (1, 1), padding='same')(x)
-    output = Reshape((k,))(x)
+        self.model=model
+    def train(self,data_gen_class,batch_size,model_path,data_path, epochs):
+        data_set=data_gen_class(os.path.join(data_path,data_gen_class.image_dir),
+                                os.path.join(data_path,data_gen_class.joint_file),
+                                 self.inres, self.outres, self.num_hgstacks)
+        test_fract = 0.2
+        train_gen, test_gen = data_set.tt_generator(batch_size, test_portion=test_fract,coord_regression=True)
+        csvlogger = CSVLogger(
+            os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%d_%m-%H_%M')) + ".csv"))
+        val_gen=data_set.val_generator(batch_size)
+        checkpoint = EvalCallBack(model_path,self,val_gen)
 
-    model = Model(inputs, output)
+        xcallbacks = [csvlogger]
 
-    return model
+        train_steps = (data_set.get_dataset_size() * (1 - test_fract)) // batch_size
+        test_steps = (data_set.get_dataset_size() * (test_fract)) // batch_size
+        #DEBUG
+        if fl.DEBUG:
+            train_steps,test_steps=30,1
+        self.model.fit_generator(generator=train_gen, steps_per_epoch=train_steps,
+                                 validation_data=test_gen, validation_steps=test_steps,
+                                 epochs=epochs, callbacks=xcallbacks)
 
-
-if __name__ == '__main__':
-    MobileNetv2((224, 224, 3), 100)

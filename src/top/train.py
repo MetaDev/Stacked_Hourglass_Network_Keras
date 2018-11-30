@@ -17,8 +17,10 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", default=8, type=int, help='batch size for training')
     parser.add_argument("--model_path",  default="../../trained_models/hg_s2_b1_m",help='path to store trained model')
     parser.add_argument("--data_path", default="../../data", help='path where data is stored')
-    parser.add_argument("--num_stack",  default=2, type=int, help='num of stacks')
+    parser.add_argument("--num_stack",  default=1, type=int, help='num of stacks')
     parser.add_argument("--epochs", default=1, type=int, help="number of traning epochs")
+    parser.add_argument("--data", default=2, type=int, help="data set and processing to use")
+
     #add aruguemnt for model and data type
 
     args = parser.parse_args()
@@ -44,10 +46,10 @@ if __name__ == "__main__":
     #     xnet.resume_train(batch_size=args.batch_size, model_json=args.resume_model_json, model_weights=args.resume_model,
     #                       init_epoch=args.init_epoch, epochs=args.epochs)
     #MPII old, MPII new amd LSP
-    data=[0,1,2][1]
+    data=args.data
     from data_gen.lsp_datgen import LSP_dataset
     from data_gen.mpII_datagen2 import MPII_dataset
-
+    import net.mobilenetv2 as mnet
     if data==0:
         xnet = HourglassNet(num_classes=16, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
 
@@ -63,3 +65,9 @@ if __name__ == "__main__":
         xnet = HourglassNet(num_classes=14, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
         xnet.build_model(mobile="v1")
         xnet.train(LSP_dataset,epochs=args.epochs, model_path=args.model_path,data_path=args.data_path, batch_size=args.batch_size)
+    elif data==3:
+        net=mnet.MobileNetV2(num_classes=14, inres=(256, 256))
+        net.build_model()
+        net.train(LSP_dataset, epochs=args.epochs, model_path=args.model_path, data_path=args.data_path,
+                   batch_size=args.batch_size)
+

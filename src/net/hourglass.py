@@ -23,6 +23,7 @@ class HourglassNet(object):
 
     def build_model(self, mobile="v1"):
         self.model = create_hourglass_network(self.num_classes, self.num_hgstacks, self.inres, self.outres, bottleneck_mobile)
+        print("Model nr. params: ", self.model.count_params())
 
 
     def train(self,data_gen_class,batch_size,model_path,data_path, epochs,debug=True):
@@ -41,7 +42,6 @@ class HourglassNet(object):
         train_steps = (data_set.get_dataset_size() * (1 - test_fract)) // batch_size
         test_steps = (data_set.get_dataset_size() * (test_fract)) // batch_size
         #DEBUG
-        print(fl.DEBUG)
         if fl.DEBUG:
             train_steps,test_steps=1,1
         self.model.fit_generator(generator=train_gen, steps_per_epoch=train_steps,
