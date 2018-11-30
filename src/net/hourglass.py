@@ -12,6 +12,7 @@ import numpy as np
 from eval.eval_callback import EvalCallBack
 import tools.flags as fl
 import data_gen.data_gen_utils as dg
+from imgaug import augmenters as iaa
 class HourglassNet(object):
     output_scale = 4
     # def get_output(self):
@@ -77,17 +78,15 @@ class HourglassNet(object):
             self.model = load_model(modelfile, custom_objects={'euclidean_loss': euclidean_loss})
     '''
 
-    def inference_rgb(self, rgbdata, orgshape):
-        import data_gen
-
+    def inference_rgb(self, img_data, orgshape):
         scale = (orgshape[0] * 1.0 / self.inres[0], orgshape[1] * 1.0 / self.inres[1])
-        imgdata = scipy.misc.imresize(rgbdata, self.inres)
-        #WARNING unchecked code
-        mean = data_gen.data_gen_utils.mean
 
-        imgdata = dg.normalize_img(imgdata)
+        img_scale = iaa.Scale({"height": self.inres[0], "width": self.inres[1]})
 
-        input = imgdata[np.newaxis, :, :, :]
+        img_data = img_scale.augment_image(img_data)
+        img_data = dg.normalize_img(img_data)
+
+        input = img_data[np.newaxis, :, :, :]
         #WARNING this code only works of there are more than 1 stack
         out = self.model.predict(input)
         if self.num_hgstacks > 1:
