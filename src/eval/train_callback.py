@@ -30,11 +30,13 @@ class EvalCallBack(keras.callbacks.Callback):
         for _imgs, _gthmaps,_metas in data_it:
             outs = self.hourglass.model.predict(_imgs)
             #the first axis is for the different hourglass outputs
-            outs=outs[-1]
-
+            #if there are multiple stacks only take the last output
+            if len(np.shape(outs))==5:
+                outs=outs[-1]
             for out,_meta in zip(outs,_metas):
                 #only get the last outputed heatmap
                 #TODO if no joint is found, 0,0 is returned, maybe penalise in specific way, also what is the third value in the post process?
+
                 pre_kps = post_process_heatmap(out)
                 gt_kps=_meta["joint_list"]
                 for jl in joint_eval_limb:

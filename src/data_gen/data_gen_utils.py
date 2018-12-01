@@ -6,6 +6,7 @@ from imgaug import augmenters as iaa
 import os
 from skimage import io
 from data_gen.data_process import generate_gtmap
+from tools import  flags as fl
 
 #standard joint order
 """"
@@ -133,7 +134,7 @@ class DataGen(object):
         self.num_hgstack=num_hgstack
         self.image_dir=image_dir
         self.image_joints=self._load_image_joints()
-    def tt_generator(self, batch_size,sigma=5, test_portion=0.02, is_shuffle=True,coord_regression=False, with_meta=False):
+    def tt_generator(self, batch_size,sigma=5, test_portion=0.02, is_shuffle=True,coord_regression=False,with_meta=False):
         #choose random test fraction
         test_idx=np.random.choice(np.arange(self.get_dataset_size()),int(self.get_dataset_size()*test_portion),replace=False)
         train_idx=list(set(np.arange(self.get_dataset_size()))-set(test_idx))
@@ -190,29 +191,29 @@ class DataGen(object):
 
                 #DEBUG
                 # im_j_before=image_with_joints(image,joint_list,colormap=LR_colormap)
+                if fl.AUGMENT:
+                    # augment image data, apply 2 of the augmentations
+                    # the augmentation doesn't take into account that flipping switches the semantic meaning of left and right
+                    flip_j = lambda keypoints_on_images, random_state, parents, hooks: flip_symmetric_keypoints(
+                        keypoints_on_images)
+                    noop = lambda images, random_state, parents, hooks: images
+                    seq = iaa.SomeOf(2, [
+                        iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.5,1.0))),
+                        iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
+                        iaa.Sometimes(0.2,iaa.Sequential([iaa.Fliplr(1), iaa.Lambda(noop, flip_j)])),
+                        iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
+                        iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
+                    ])
 
-                # augment image data, apply 2 of the augmentations
-                # the augmentation doesn't take into account that flipping switches the semantic meaning of left and right
-                flip_j = lambda keypoints_on_images, random_state, parents, hooks: flip_symmetric_keypoints(
-                    keypoints_on_images)
-                noop = lambda images, random_state, parents, hooks: images
-                seq = iaa.SomeOf(2, [
-                    iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.5,1.0))),
-                    iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
-                    iaa.Sometimes(0.2,iaa.Sequential([iaa.Fliplr(1), iaa.Lambda(noop, flip_j)])),
-                    iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
-                    iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
-                ])
-
-                try:
-                    seq_det = seq.to_deterministic()
-                    image_aug = seq_det.augment_image(image)
-                except:
-                    print("image augm fail: ",imagefile,image.shape, flush=True )
-                    #if augmentation fails skip this image
-                    continue
-                # augment keyponts accordingly
-                joint_list[:, :2] = apply_iaa_keypoints(seq_det, joint_list[:, :2], image.shape)
+                    try:
+                        seq_det = seq.to_deterministic()
+                        image = seq_det.augment_image(image)
+                    except:
+                        print("image augm fail: ",imagefile,image.shape, flush=True )
+                        #if augmentation fails skip this image
+                        continue
+                    # augment keyponts accordingly
+                    joint_list[:, :2] = apply_iaa_keypoints(seq_det, joint_list[:, :2], image.shape)
 
                 # show the images with joints visible
                 #DEBUG
@@ -223,18 +224,18 @@ class DataGen(object):
                 # normalize image channels and scale the input image and keypoints respectively
                 img_scale = iaa.Scale({"height": inres[0], "width": inres[1]})
                 try:
-                    image_aug = img_scale.augment_image(image_aug)
+                    image = img_scale.augment_image(image)
                 except:
-                    print("image inres scale fail: " , inres , image_aug.shape, flush=True)
+                    print("image inres scale fail: " , inres , image.shape, flush=True)
                     # if augmentation fails skip this image
                     continue
 
 
                 kp_scale = iaa.Scale({"height": outres[0], "width": outres[1]})
                 joint_list[:, :2] = apply_iaa_keypoints(kp_scale, joint_list[:, :2], outres)
-                image_aug = normalize_img(image_aug)
+                image = normalize_img(image)
 
-                train_input[batch_i, :, :, :] = image_aug
+                train_input[batch_i, :, :, :] = image
 
                 gt_hmp = generate_gtmap(joint_list, sigma, outres)
                 gt_heatmap[batch_i, :, :, :] = gt_hmp
