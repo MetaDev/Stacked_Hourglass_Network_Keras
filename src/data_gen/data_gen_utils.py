@@ -219,8 +219,8 @@ class DataGen(object):
                 img_scale = iaa.Scale({"height": inres[0], "width": inres[1]})
                 try:
                     image_aug = img_scale.augment_image(image_aug)
-                except AssertionError:
-                    print("image inres scale fail: ", img_scale , inres , image_aug.shape, flush=True)
+                except:
+                    print("image inres scale fail: " , inres , image_aug.shape, flush=True)
                     # if augmentation fails skip this image
                     continue
 
