@@ -150,6 +150,7 @@ class DataGen(object):
         val_gen=self._generator(self.image_joints, batch_size, sigma, is_shuffle=False, with_meta=True)
         return val_gen
     min_visible_joints=7
+    min_resolution=32
     def _generator(self,image_joints, batch_size, sigma=5, is_shuffle=True,coord_regression=False, with_meta=False):
 
         '''
@@ -169,13 +170,17 @@ class DataGen(object):
         while True:
             if is_shuffle:
                 np.random.shuffle(image_joints)
-            for _i, image_joint in enumerate(image_joints):
+            _i=0
+            for image_joint in image_joints:
                 batch_i = _i % batch_size
                 imagefile, joint_list = image_joint
                 if n_joints_visible(joint_list) < self.min_visible_joints:
                     continue
                 image = read_img_file(os.path.join(self.image_dir, imagefile))
-                if np.any(image.shape) < 10:
+                #cehck image resolution
+
+                if (np.array(image.shape[0:2])< self.min_resolution).any() :
+                    print("image too small: ",imagefile,image.shape, flush=True )
                     continue
                 box= get_bounding_box(joint_list, image)
 
@@ -202,7 +207,7 @@ class DataGen(object):
                 try:
                     seq_det = seq.to_deterministic()
                     image_aug = seq_det.augment_image(image)
-                except AssertionError:
+                except:
                     print("image augm fail: ",imagefile,image.shape, flush=True )
                     #if augmentation fails skip this image
                     continue
@@ -219,8 +224,8 @@ class DataGen(object):
                 img_scale = iaa.Scale({"height": inres[0], "width": inres[1]})
                 try:
                     image_aug = img_scale.augment_image(image_aug)
-                except AssertionError:
-                    print("image inres scale fail: ", img_scale , inres , image_aug.shape, flush=True)
+                except:
+                    print("image inres scale fail: " , inres , image_aug.shape, flush=True)
                     # if augmentation fails skip this image
                     continue
 
@@ -236,6 +241,7 @@ class DataGen(object):
                 #batch, joint, coord
                 #normalise joint coords
                 gt_coord[batch_i, :] = (joint_list[:,:2]/np.array(outres)).flatten()
+                _i+=1
                 # save keypoints that created the heatmap
                 if with_meta:
                     meta_info.append({'joint_list': joint_list})
@@ -259,3 +265,6 @@ def normalize_img(img_data):
     '''
 
     return ((img_data / 255.0) - mean) / std
+import numpy as np
+t=np.array((3,3))
+print((t<2).any())
