@@ -13,13 +13,12 @@ from net.hourglass import HourglassNet
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--gpuID", default=0, type=int, help='gpu id')
-    parser.add_argument("--mobile", default=True, help="use depthwise conv in hourglass'")
     parser.add_argument("--batch_size", default=8, type=int, help='batch size for training')
     parser.add_argument("--model_path",  default="../../trained_models/hg_s2_b1_m",help='path to store trained model')
     parser.add_argument("--data_path", default="../../data", help='path where data is stored')
     parser.add_argument("--num_stack",  default=1, type=int, help='num of stacks')
     parser.add_argument("--epochs", default=1, type=int, help="number of traning epochs")
-    parser.add_argument("--data", default=0, type=int, help="data set and processing to use")
+    parser.add_argument("--data", default=2, type=int, help="data set and processing to use")
 
     #add aruguemnt for model and data type
 
@@ -53,17 +52,17 @@ if __name__ == "__main__":
     if data==0:
         xnet = HourglassNet(num_classes=16, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
 
-        xnet.build_model(mobile=args.mobile)
+        xnet.build_model()
 
         xnet.train_old(epochs=args.epochs, model_path=args.model_path, batch_size=args.batch_size)
     elif data==1:
         xnet = HourglassNet(num_classes=14, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
-        xnet.build_model(mobile="v1")
+        xnet.build_model()
         xnet.train(MPII_dataset,epochs=args.epochs, model_path=args.model_path, data_path=args.data_path,
                        batch_size=args.batch_size)
     elif data==2:
         xnet = HourglassNet(num_classes=14, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
-        xnet.build_model(mobile="v1")
+        xnet.build_model()
         xnet.train(LSP_dataset,epochs=args.epochs, model_path=args.model_path,data_path=args.data_path, batch_size=args.batch_size)
     elif data==3:
         net=mnet.MobileNetV2(num_classes=14, inres=(256, 256))
