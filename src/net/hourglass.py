@@ -40,7 +40,7 @@ class HourglassNet(object):
         model_logger = SaveCallBack(model_path,self)
         eval_logger = EvalCallBack(model_path,self,val_gen)
 
-        xcallbacks = [csvlogger,eval_logger,model_logger]
+        xcallbacks = [csvlogger,model_logger]
 
         train_steps = (data_set.get_dataset_size() * (1 - test_fract)) // batch_size
         test_steps = (data_set.get_dataset_size() * (test_fract)) // batch_size

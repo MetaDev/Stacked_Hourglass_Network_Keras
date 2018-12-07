@@ -1,2 +1,3 @@
-DEBUG=True
-AUGMENT=False
+
+DEBUG=False
+AUGMENT=True
