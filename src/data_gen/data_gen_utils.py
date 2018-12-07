@@ -198,8 +198,8 @@ class DataGen(object):
                     flip_j = lambda keypoints_on_images, random_state, parents, hooks: flip_symmetric_keypoints(
                         keypoints_on_images)
                     noop = lambda images, random_state, parents, hooks: images
-                    seq = iaa.SomeOf(5, [
-                        iaa.Sometimes(1, iaa.Scale(iap.Uniform(0.7,1.2))),
+                    seq = iaa.SomeOf(2, [
+                        iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.7,1.2))),
                         iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
                         iaa.Sometimes(0.2,iaa.Sequential([iaa.Fliplr(1), iaa.Lambda(noop, flip_j)])),
                         iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
