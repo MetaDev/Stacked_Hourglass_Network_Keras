@@ -244,14 +244,6 @@ class DataGen(object):
 
                 gt_hmp = generate_gtmap(joint_list, sigma, outres)
 
-                #DEBUG
-
-                hmap = np.sum(gt_hmp,axis=2)
-
-                plt.imshow(hmap)
-                plt.show()
-
-
                 gt_heatmap[batch_i, :, :, :] = gt_hmp
                 #batch, joint, coord
                 #normalise joint coords

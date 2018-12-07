@@ -38,6 +38,12 @@ class HourglassNet(object):
             os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%d_%m-%H_%M')) + ".csv"))
         val_gen=data_set.val_generator(batch_size)
         model_logger = SaveCallBack(model_path,self)
+        #TODO make evaluation cheaper
+        #add early stop
+        #keras.callbacks.EarlyStopping(monitor='val_loss',
+                              # min_delta=0,
+                              # patience=2,
+                              # verbose=0, mode='auto')
         eval_logger = EvalCallBack(model_path,self,val_gen)
 
         xcallbacks = [csvlogger,model_logger]
