@@ -40,7 +40,7 @@ class HourglassNet(object):
         model_logger = SaveCallBack(model_path,self)
         eval_logger = EvalCallBack(model_path,self,val_gen)
 
-        xcallbacks = [csvlogger,eval_logger,model_logger]
+        xcallbacks = [csvlogger,model_logger]
 
         train_steps = (data_set.get_dataset_size() * (1 - test_fract)) // batch_size
         test_steps = (data_set.get_dataset_size() * (test_fract)) // batch_size
@@ -49,7 +49,7 @@ class HourglassNet(object):
             train_steps,test_steps=1,1
         self.model.fit_generator(generator=train_gen, steps_per_epoch=train_steps,
                                  validation_data=test_gen, validation_steps=test_steps,
-                                 epochs=epochs, callbacks=xcallbacks,verbose=1)
+                                 epochs=epochs, callbacks=xcallbacks)
 
 
     def train_old(self, batch_size, model_path, epochs):

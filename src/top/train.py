@@ -49,6 +49,7 @@ if __name__ == "__main__":
     from data_gen.lsp_datgen import LSP_dataset
     from data_gen.mpII_datagen2 import MPII_dataset
     import net.mobilenetv2 as mnet
+
     if data==0:
         xnet = HourglassNet(num_classes=16, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
 
@@ -69,4 +70,7 @@ if __name__ == "__main__":
         net.build_model()
         net.train(LSP_dataset, epochs=args.epochs, model_path=args.model_path, data_path=args.data_path,
                    batch_size=args.batch_size)
+    elif data==4:
+        #overfit on 100 samples
+        pass
 

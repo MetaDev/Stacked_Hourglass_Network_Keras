@@ -20,7 +20,7 @@ r0ZnlWVMclT2
 
 on startup working directory
 
-cd /media/ssddata/jstaley/pose_estimation/Stacked_Hourglass_Network_Keras
+cd /media/sda4/jstaley/pose_estimation/Stacked_Hourglass_Network_Keras
 
 set environment
 
@@ -31,7 +31,7 @@ __________________________
 training command in keras repo
 #start a screen first, to activate a conda environment activate/deactivate twice
 
-python train.py --gpuID 0 --epochs 100 --batch_size 8 --num_stack 2 --mobile True --model_path ../../trained_models/MPII_original
+python train.py --gpuID 0 --epochs 50 --batch_size 8 --num_stack 2 --mdata 0 --model_path ../../trained_models/MPII_original
 
 python demo.py --gpuID 0 --model_json ../../trained_models/hg_s2_b1_m/net_arch.json  --model_weights ../../trained_models/hg_s2_b1_m/weights_epoch99.h5  --conf_threshold 0.1 --input_image ../../images/sample.jpg
 

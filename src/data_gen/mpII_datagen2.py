@@ -61,11 +61,20 @@ class MPII_dataset(DataGen):
 
 
 
+import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
     image_dir, joint_file = "../../data/mpii/images", "../../data/mpii/mpii_annotations.json"
     data_set = MPII_dataset(image_dir, joint_file, [128, 128], [128, 128], 1)
-    train_gen = data_set.tt_generator(100)
-    for i, _ in enumerate(train_gen):
-        if i == 2:
-            break
+    train_gen,test_gen = data_set.tt_generator(100)
+    for i, batch in enumerate(train_gen):
+        train_in, hmaps = batch
+        # print(np.shape(hmaps))
+        # # irst index is for the hourglass number
+        # hmaps = np.array(hmaps[0])
+        # for image_in, hmap in zip(train_in, hmaps):
+        #     plt.imshow(image_in)
+        #     plt.show()
+        #     for joints in range(np.shape(hmap)[-1]):
+        #         plt.imshow(hmap[:, :, joints])
+        #         plt.show()

@@ -85,9 +85,8 @@ def crop(img, center, scale, res, rot=0):
 
     new_img = scipy.misc.imresize(new_img, res)
     return new_img
-
-
-def normalize(imgdata, color_mean):
+mean = np.array([0.4404, 0.4440, 0.4327], dtype=np.float)
+def normalize(imgdata):
     '''
     :param imgdata: image in 0 ~ 255
     :return:  image from 0.0 to 1.0
@@ -95,7 +94,7 @@ def normalize(imgdata, color_mean):
     imgdata = imgdata/255.0
 
     for i in range(imgdata.shape[-1]):
-        imgdata[:, :, i] -= color_mean[i]
+        imgdata[:, :, i] -= mean[i]
 
     return imgdata
 
@@ -109,6 +108,7 @@ def draw_labelmap(img, pt, sigma, type='Gaussian'):
     br = [int(pt[0] + 3 * sigma + 1), int(pt[1] + 3 * sigma + 1)]
     if (ul[0] >= img.shape[1] or ul[1] >= img.shape[0] or
             br[0] < 0 or br[1] < 0):
+        print("kak")
         # If not, just return the image as is
         return img
 

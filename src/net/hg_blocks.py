@@ -18,7 +18,7 @@ def create_hourglass_network(num_classes, num_stacks, inres, outres, bottleneck)
         head_next_stage, head_to_loss = hourglass_module(head_next_stage, num_classes, bottleneck, i)
         outputs.append(head_to_loss)
     model = Model(inputs=input, outputs=outputs)
-    rms = RMSprop(lr=1e-06)
+    rms = RMSprop(lr=5e-04)
     model.compile(optimizer=rms, loss=mean_squared_error, metrics=["accuracy"])
 
     return model
