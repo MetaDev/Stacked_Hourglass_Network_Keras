@@ -219,8 +219,8 @@ class DataGen(object):
 
                 # show the images with joints visible
                 #DEBUG
-                im_j_after=image_with_joints(image, joint_list, colormap=LR_colormap)
-                draw_images([im_j_after])
+                # im_j_after=image_with_joints(image, joint_list, colormap=LR_colormap)
+                # draw_images([im_j_after])
 
                 #scale keypoints to output res
                 kp_scale = iaa.Scale({"height": outres[0], "width": outres[1]})
