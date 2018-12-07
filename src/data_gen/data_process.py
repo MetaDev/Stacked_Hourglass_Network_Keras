@@ -108,7 +108,6 @@ def draw_labelmap(img, pt, sigma, type='Gaussian'):
     br = [int(pt[0] + 3 * sigma + 1), int(pt[1] + 3 * sigma + 1)]
     if (ul[0] >= img.shape[1] or ul[1] >= img.shape[0] or
             br[0] < 0 or br[1] < 0):
-        print("kak")
         # If not, just return the image as is
         return img
 
