@@ -49,7 +49,7 @@ class HourglassNet(object):
             train_steps,test_steps=1,1
         self.model.fit_generator(generator=train_gen, steps_per_epoch=train_steps,
                                  validation_data=test_gen, validation_steps=test_steps,
-                                 epochs=epochs, callbacks=xcallbacks,verbose=1)
+                                 epochs=epochs, callbacks=xcallbacks)
 
 
     def train_old(self, batch_size, model_path, epochs):

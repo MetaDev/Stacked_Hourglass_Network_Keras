@@ -23,7 +23,7 @@ def heatmap_accuracy(predhmap, meta, threshold):
     good_pred_count = 0
     failed_pred_count = 0
     #TODO calcualte length of the whole skeleton
-    total_kp_dist=np.sum()
+    # total_kp_dist=np.sum()
     for i in range(gt_kps.shape[0]):
         dis = cal_kp_distance(pred_kps[i, :], gt_kps[i, :],  threshold)
         if dis == 0:

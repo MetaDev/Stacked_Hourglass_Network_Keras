@@ -117,7 +117,7 @@ def apply_iaa_keypoints(iaa, keypoints, shape):
 mean = np.array([0.485, 0.456, 0.406])
 std = np.array([0.229, 0.224, 0.225])
 
-
+import matplotlib.pyplot as plt
 N_JOINTS=14
 def n_joints_visible(joint_list):
     return len([1 for joint in joint_list if joint[2]==1])
@@ -178,15 +178,16 @@ class DataGen(object):
                 if n_joints_visible(joint_list) < self.min_visible_joints:
                     continue
                 image = read_img_file(os.path.join(self.image_dir, imagefile))
+                original_res=image.shape[0:2]
                 #cehck image resolution
 
-                if (np.array(image.shape[0:2])< self.min_resolution).any() :
-                    print("image too small: ",imagefile,image.shape, flush=True )
-                    continue
                 box= get_bounding_box(joint_list, image)
 
                 # d_util.draw_image_with_joints(image, joints)
                 image = image[box[1]:box[3], box[0]:box[2], :]
+                if (np.array(image.shape[0:2])< self.min_resolution).any() :
+                    print("image too small after cropping: ",imagefile,image.shape, flush=True )
+                    continue
                 joint_list[:, :2] = joint_list[:, :2] - np.array([box[0], box[1]])
 
                 #DEBUG
@@ -198,7 +199,7 @@ class DataGen(object):
                         keypoints_on_images)
                     noop = lambda images, random_state, parents, hooks: images
                     seq = iaa.SomeOf(2, [
-                        iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.5,1.0))),
+                        iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.7,1.2))),
                         iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
                         iaa.Sometimes(0.2,iaa.Sequential([iaa.Fliplr(1), iaa.Lambda(noop, flip_j)])),
                         iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
@@ -210,6 +211,7 @@ class DataGen(object):
                         image = seq_det.augment_image(image)
                     except:
                         print("image augm fail: ",imagefile,image.shape, flush=True )
+                        print("joints", n_joints_visible(joint_list), joint_list)
                         #if augmentation fails skip this image
                         continue
                     # augment keyponts accordingly
@@ -217,27 +219,39 @@ class DataGen(object):
 
                 # show the images with joints visible
                 #DEBUG
-                # im_j_after=image_with_joints(image_aug, joint_list, colormap=LR_colormap)
-                # draw_images([im_j_before,im_j_after])
+                im_j_after=image_with_joints(image, joint_list, colormap=LR_colormap)
+                draw_images([im_j_after])
 
+                #scale keypoints to output res
+                kp_scale = iaa.Scale({"height": outres[0], "width": outres[1]})
 
-                # normalize image channels and scale the input image and keypoints respectively
+                joint_list[:, :2] = apply_iaa_keypoints(kp_scale, joint_list[:, :2], image.shape)
+
+                # normalize image channels and scale the input image
                 img_scale = iaa.Scale({"height": inres[0], "width": inres[1]})
                 try:
                     image = img_scale.augment_image(image)
                 except:
-                    print("image inres scale fail: " , inres , image.shape, flush=True)
+                    print("image inres scale fail: " , imagefile, inres , image.shape, flush=True)
                     # if augmentation fails skip this image
                     continue
 
 
-                kp_scale = iaa.Scale({"height": outres[0], "width": outres[1]})
-                joint_list[:, :2] = apply_iaa_keypoints(kp_scale, joint_list[:, :2], outres)
+                # joint_list[:, :2]=(joint_list[:,:2]/original_res)*outres
                 image = normalize_img(image)
 
                 train_input[batch_i, :, :, :] = image
 
                 gt_hmp = generate_gtmap(joint_list, sigma, outres)
+
+                #DEBUG
+
+                hmap = np.sum(gt_hmp,axis=2)
+
+                plt.imshow(hmap)
+                plt.show()
+
+
                 gt_heatmap[batch_i, :, :, :] = gt_hmp
                 #batch, joint, coord
                 #normalise joint coords
@@ -266,6 +280,3 @@ def normalize_img(img_data):
     '''
 
     return ((img_data / 255.0) - mean) / std
-import numpy as np
-t=np.array((3,3))
-print((t<2).any())
