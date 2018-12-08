@@ -52,7 +52,7 @@ class HourglassNet(object):
         test_steps = (data_set.get_dataset_size() * (test_fract)) // batch_size
         #DEBUG
         if fl.DEBUG:
-            train_steps,test_steps=1,1
+            train_steps,test_steps=10,10
         self.model.fit_generator(generator=train_gen, steps_per_epoch=train_steps,
                                  validation_data=test_gen, validation_steps=test_steps,
                                  epochs=epochs, callbacks=xcallbacks)
