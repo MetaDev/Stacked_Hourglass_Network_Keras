@@ -117,8 +117,9 @@ def apply_iaa_keypoints(iaa, keypoints, shape):
 mean = np.array([0.485, 0.456, 0.406])
 std = np.array([0.229, 0.224, 0.225])
 
-import matplotlib.pyplot as plt
+import tools.flags as fl
 N_JOINTS=14
+
 def n_joints_visible(joint_list):
     return len([1 for joint in joint_list if joint[2]==1])
 class DataGen(object):
@@ -165,6 +166,8 @@ class DataGen(object):
         train_input = np.zeros(shape=(batch_size, inres[0], inres[1], 3), dtype=np.float)
         gt_heatmap = np.zeros(shape=(batch_size, outres[0], outres[1], N_JOINTS), dtype=np.float)
         gt_coord = np.zeros(shape=(batch_size, N_JOINTS *2 ), dtype=np.float)
+        if fl.DEBUG:
+            image_joints=image_joints[:100]
 
         meta_info = []
         # create a batch of images and its heatmpas and yield it

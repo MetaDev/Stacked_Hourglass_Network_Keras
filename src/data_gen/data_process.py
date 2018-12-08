@@ -85,8 +85,8 @@ def crop(img, center, scale, res, rot=0):
 
     new_img = scipy.misc.imresize(new_img, res)
     return new_img
-mean = np.array([0.4404, 0.4440, 0.4327], dtype=np.float)
-def normalize(imgdata):
+
+def normalize(imgdata,mean):
     '''
     :param imgdata: image in 0 ~ 255
     :return:  image from 0.0 to 1.0
