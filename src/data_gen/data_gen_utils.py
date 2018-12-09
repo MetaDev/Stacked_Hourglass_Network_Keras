@@ -193,7 +193,23 @@ class DataGen(object):
                     continue
                 joint_list[:, :2] = joint_list[:, :2] - np.array([box[0], box[1]])
 
+                """MPII original hourglas image augmenation:
+                crop the image around the
+                target person. All input images are then resized to 256x256 pixels. We do data
+                augmentation that includes rotation (+/- 30 degrees), and scaling (.75-1.25)"""
+
+                """Posetrack winner augmentation: With probability pocc, we paste a ran-
+                dom number (between 1 and 8) of these objects at random
+                
+                locations in each frame. We also apply standard geomet-
+                ric augmentations (scaling, rotation, translation, horizontal
+                
+                flip) and appearance distortions (blurs and color manipula-
+                tions). At test time only horizontal flipping augmentation is
+                
+                used."""
                 #DEBUG
+
                 # im_j_before=image_with_joints(image,joint_list,colormap=LR_colormap)
                 if fl.AUGMENT:
                     # augment image data, apply 2 of the augmentations
@@ -202,11 +218,20 @@ class DataGen(object):
                         keypoints_on_images)
                     noop = lambda images, random_state, parents, hooks: images
                     seq = iaa.SomeOf(2, [
-                        iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.7,1.2))),
-                        iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
+                        # iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.75,1.25))),
+                        iaa.Sometimes(0.4, iaa.Affine(
+                            scale={"x": (0.75, 1.25), "y": (0.8, 1.2)},
+                            rotate=(-30, 30),
+                            # shear=(-16, 16),  
+                            order=[0, 1],  # use nearest neighbour or bilinear interpolation (fast)
+                            # cval=(0, 255),  # if mode is constant, use a cval between 0 and 255
+                            mode=["edge"]
+
+                        )),
+                        # iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
                         iaa.Sometimes(0.2,iaa.Sequential([iaa.Fliplr(1), iaa.Lambda(noop, flip_j)])),
-                        iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
-                        iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
+                        # iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
+                        # iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
                     ])
 
                     try:
