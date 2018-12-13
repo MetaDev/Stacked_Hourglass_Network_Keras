@@ -114,7 +114,9 @@ def pose2keypoints( shape, pose):
 def apply_iaa_keypoints(iaa, keypoints, shape):
     return keypoints2pose(iaa.augment_keypoints([pose2keypoints(shape, keypoints)])[0])
 #TODO calculated on whole image dataset
-mean = np.array([0.485, 0.456, 0.406])
+# mean = np.array([0.485, 0.456, 0.406])
+mean = np.array([0.4404, 0.4440, 0.4327], dtype=np.float)
+
 std = np.array([0.229, 0.224, 0.225])
 
 import tools.flags as fl
@@ -265,7 +267,6 @@ class DataGen(object):
                     continue
 
 
-                # joint_list[:, :2]=(joint_list[:,:2]/original_res)*outres
                 image = normalize_img(image)
 
                 train_input[batch_i, :, :, :] = image
@@ -306,4 +307,4 @@ def normalize_img(img_data):
     :return:  image from 0.0 to 1.0
     '''
 
-    return ((img_data / 255.0) - mean) / std
+    return ((img_data / 255.0) - mean)
