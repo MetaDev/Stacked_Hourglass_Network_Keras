@@ -7,7 +7,7 @@ from keras.models import model_from_json
 
 import datetime
 import scipy.misc
-
+import keras
 import numpy as np
 from eval.train_callback import EvalCallBack, SaveCallBack
 import tools.flags as fl
@@ -40,13 +40,22 @@ class HourglassNet(object):
         model_logger = SaveCallBack(model_path,self)
         #TODO make evaluation cheaper
         #add early stop
-        #keras.callbacks.EarlyStopping(monitor='val_loss',
-                              # min_delta=0,
-                              # patience=2,
-                              # verbose=0, mode='auto')
+        early_stop=keras.callbacks.EarlyStopping(monitor='val_loss',
+                              min_delta=0,
+                              patience=2,
+                              verbose=1, mode='auto')
+        def lr_scheduler(epoch, lr):
+            decay_rate = 0.1
+            decay_step = 90
+            if epoch % decay_step == 0 and epoch:
+                return lr * decay_rate
+            return lr
+        learning_rate_sched=keras.callbacks.LearningRateScheduler(lr_scheduler, verbose=1)
+
+
         eval_logger = EvalCallBack(model_path,self,val_gen)
 
-        xcallbacks = [csvlogger,model_logger]
+        xcallbacks = [csvlogger,model_logger,early_stop,learning_rate_sched]
 
         train_steps = (data_set.get_dataset_size() * (1 - test_fract)) // batch_size
         test_steps = (data_set.get_dataset_size() * (test_fract)) // batch_size

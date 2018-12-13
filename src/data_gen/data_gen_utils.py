@@ -178,19 +178,19 @@ class DataGen(object):
             for image_joint in image_joints:
                 batch_i = _i % batch_size
                 imagefile, joint_list = image_joint
+                #if insufficient joints are visible don't use image
                 if n_joints_visible(joint_list) < self.min_visible_joints:
                     continue
                 image = read_img_file(os.path.join(self.image_dir, imagefile))
-                original_res=image.shape[0:2]
                 #cehck image resolution
 
                 box= get_bounding_box(joint_list, image)
 
                 # d_util.draw_image_with_joints(image, joints)
                 image = image[box[1]:box[3], box[0]:box[2], :]
-                if (np.array(image.shape[0:2])< self.min_resolution).any() :
-                    print("image too small after cropping: ",imagefile,image.shape, flush=True )
-                    continue
+                # if (np.array(image.shape[0:2])< self.min_resolution).any() :
+                #     print("image too small after cropping: ",imagefile,image.shape, flush=True )
+                #     continue
                 joint_list[:, :2] = joint_list[:, :2] - np.array([box[0], box[1]])
 
                 """MPII original hourglas image augmenation:
@@ -217,10 +217,10 @@ class DataGen(object):
                     flip_j = lambda keypoints_on_images, random_state, parents, hooks: flip_symmetric_keypoints(
                         keypoints_on_images)
                     noop = lambda images, random_state, parents, hooks: images
-                    seq = iaa.SomeOf(2, [
+                    seq = iaa.SomeOf(1, [
                         # iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.75,1.25))),
                         iaa.Sometimes(0.4, iaa.Affine(
-                            scale={"x": (0.75, 1.25), "y": (0.8, 1.2)},
+                            scale={"x": (0.75, 1.25), "y": (0.75, 1.25)},
                             rotate=(-30, 30),
                             # shear=(-16, 16),
                             order=[0, 1],  # use nearest neighbour or bilinear interpolation (fast)
@@ -229,7 +229,7 @@ class DataGen(object):
 
                         )),
                         # iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
-                        iaa.Sometimes(0.2,iaa.Sequential([iaa.Fliplr(1), iaa.Lambda(noop, flip_j)])),
+                        # iaa.Sometimes(1,iaa.Sequential([iaa.Fliplr(1), iaa.Lambda(noop, flip_j)])),
                         # iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
                         # iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
                     ])
@@ -248,7 +248,7 @@ class DataGen(object):
                 # show the images with joints visible
                 #DEBUG
                 # im_j_after=image_with_joints(image, joint_list, colormap=LR_colormap)
-                # draw_images([im_j_after])
+                # draw_images([im_j_before,im_j_after])
 
                 #scale keypoints to output res
                 kp_scale = iaa.Scale({"height": outres[0], "width": outres[1]})
@@ -273,6 +273,13 @@ class DataGen(object):
                 gt_hmp = generate_gtmap(joint_list, sigma, outres)
 
                 gt_heatmap[batch_i, :, :, :] = gt_hmp
+
+                #debug
+                # hmap_viz=np.sum(gt_hmp, axis=-1)
+                # import matplotlib.pyplot as plt
+                # plt.imshow(hmap_viz)
+                # plt.show()
+
                 #batch, joint, coord
                 #normalise joint coords
                 gt_coord[batch_i, :] = (joint_list[:,:2]/np.array(outres)).flatten()
