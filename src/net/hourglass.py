@@ -34,12 +34,11 @@ class HourglassNet(object):
                                  self.inres, self.outres, self.num_hgstacks)
         test_fract = 0.2
         train_gen, test_gen = data_set.tt_generator(batch_size, test_portion=test_fract)
+        timestamp= str(datetime.datetime.now().strftime('%d_%m-%H_%M'))
         csvlogger = CSVLogger(
-            os.path.join(model_path, "csv_train_" + str(datetime.datetime.now().strftime('%d_%m-%H_%M')) + ".csv"))
+            os.path.join(model_path, "csv_train_" + timestamp+ ".csv"))
         val_gen=data_set.val_generator(batch_size)
         model_logger = SaveCallBack(model_path,self)
-        #TODO make evaluation cheaper
-        #add early stop
         early_stop=keras.callbacks.EarlyStopping(monitor='val_loss',
                               min_delta=0,
                               patience=2,
@@ -50,12 +49,17 @@ class HourglassNet(object):
             if epoch % decay_step == 0 and epoch:
                 return lr * decay_rate
             return lr
-        learning_rate_sched=keras.callbacks.LearningRateScheduler(lr_scheduler, verbose=1)
+        learning_rate_sched=keras.callbacks.ReduceLROnPlateau(monitor='val_loss',
+                                                              factor=0.5, patience=3, verbose=0, mode='auto',
+                                                              min_delta=0.001, cooldown=0, min_lr=0)
+        #you can run tensorboard from notebooks with tensorboard notebook package
+        tensorboard=keras.callbacks.TensorBoard(log_dir='./log/'+timestamp, histogram_freq=0,
+                                    write_graph=True, write_images=True)
 
 
         eval_logger = EvalCallBack(model_path,self,val_gen)
 
-        xcallbacks = [csvlogger,model_logger,early_stop,learning_rate_sched]
+        xcallbacks = [csvlogger,model_logger,early_stop,learning_rate_sched,tensorboard]
 
         train_steps = (data_set.get_dataset_size() * (1 - test_fract)) // batch_size
         test_steps = (data_set.get_dataset_size() * (test_fract)) // batch_size
