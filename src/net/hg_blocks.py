@@ -1,6 +1,6 @@
 from keras.models import *
 from keras.layers import *
-from keras.optimizers import  RMSprop
+from keras.optimizers import RMSprop
 from keras.losses import mean_squared_error
 import keras.backend as K
 
