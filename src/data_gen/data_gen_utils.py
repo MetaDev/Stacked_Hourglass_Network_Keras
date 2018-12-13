@@ -188,9 +188,9 @@ class DataGen(object):
 
                 # d_util.draw_image_with_joints(image, joints)
                 image = image[box[1]:box[3], box[0]:box[2], :]
-                if (np.array(image.shape[0:2])< self.min_resolution).any() :
-                    print("image too small after cropping: ",imagefile,image.shape, flush=True )
-                    continue
+                # if (np.array(image.shape[0:2])< self.min_resolution).any() :
+                #     print("image too small after cropping: ",imagefile,image.shape, flush=True )
+                #     continue
                 joint_list[:, :2] = joint_list[:, :2] - np.array([box[0], box[1]])
 
                 """MPII original hourglas image augmenation:
