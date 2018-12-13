@@ -222,7 +222,7 @@ class DataGen(object):
                         iaa.Sometimes(0.4, iaa.Affine(
                             scale={"x": (0.75, 1.25), "y": (0.8, 1.2)},
                             rotate=(-30, 30),
-                            # shear=(-16, 16),  
+                            # shear=(-16, 16),
                             order=[0, 1],  # use nearest neighbour or bilinear interpolation (fast)
                             # cval=(0, 255),  # if mode is constant, use a cval between 0 and 255
                             mode=["edge"]
