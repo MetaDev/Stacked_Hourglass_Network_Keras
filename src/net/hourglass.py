@@ -41,16 +41,11 @@ class HourglassNet(object):
         model_logger = SaveCallBack(model_path,self)
         early_stop=keras.callbacks.EarlyStopping(monitor='val_loss',
                               min_delta=0,
-                              patience=2,
+                              patience=10,
                               verbose=1, mode='auto')
-        def lr_scheduler(epoch, lr):
-            decay_rate = 0.1
-            decay_step = 90
-            if epoch % decay_step == 0 and epoch:
-                return lr * decay_rate
-            return lr
+
         learning_rate_sched=keras.callbacks.ReduceLROnPlateau(monitor='val_loss',
-                                                              factor=0.5, patience=3, verbose=0, mode='auto',
+                                                              factor=0.5, patience=3, verbose=1, mode='auto',
                                                               min_delta=0.001, cooldown=0, min_lr=0)
         #you can run tensorboard from notebooks with tensorboard notebook package
         tensorboard=keras.callbacks.TensorBoard(log_dir='./log/'+timestamp, histogram_freq=0,
