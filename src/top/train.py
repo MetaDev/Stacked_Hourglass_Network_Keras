@@ -65,12 +65,5 @@ if __name__ == "__main__":
         xnet = HourglassNet(num_classes=14, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
         xnet.build_model()
         xnet.train(LSP_dataset,epochs=args.epochs, model_path=args.model_path,data_path=args.data_path, batch_size=args.batch_size)
-    elif data==3:
-        net=mnet.MobileNetV2(num_classes=14, inres=(256, 256))
-        net.build_model()
-        net.train(LSP_dataset, epochs=args.epochs, model_path=args.model_path, data_path=args.data_path,
-                   batch_size=args.batch_size)
-    elif data==4:
-        #overfit on 100 samples
-        pass
+
 

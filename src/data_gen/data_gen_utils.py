@@ -63,7 +63,7 @@ def paint_joints(cvmat, joints, colormap=None):
 
 
 def get_bounding_box(joints,img):
-    visible_joints=np.array([j for j in joints if not np.all(j==0)])
+    visible_joints=np.array([j for j in joints if j[2]==1])
     left=np.min(visible_joints[:,0])
     top=np.min(visible_joints[:,1])
     right=np.max(visible_joints[:,0])
@@ -198,7 +198,8 @@ class DataGen(object):
                 """MPII original hourglas image augmenation:
                 crop the image around the
                 target person. All input images are then resized to 256x256 pixels. We do data
-                augmentation that includes rotation (+/- 30 degrees), and scaling (.75-1.25)"""
+                augmentation that includes rotation (+/- 30 degrees), and scaling (.75-1.25)
+                addtioanly channels can be scaled with 60% - 140%"""
 
                 """Posetrack winner augmentation: With probability pocc, we paste a ran-
                 dom number (between 1 and 8) of these objects at random
@@ -212,7 +213,7 @@ class DataGen(object):
                 used."""
                 #DEBUG
 
-                # im_j_before=image_with_joints(image,joint_list,colormap=LR_colormap)
+                im_j_before=image_with_joints(image,joint_list,colormap=LR_colormap)
                 if fl.AUGMENT:
                     # augment image data, apply 2 of the augmentations
                     # the augmentation doesn't take into account that flipping switches the semantic meaning of left and right
@@ -257,7 +258,12 @@ class DataGen(object):
 
                 joint_list[:, :2] = apply_iaa_keypoints(kp_scale, joint_list[:, :2], image.shape)
 
+                #check if augmented image is still within bounds
+                if (np.array(image.shape[0:2])< self.min_resolution).any() :
+                    print("image too small after augmentation: ",imagefile,image.shape, flush=True )
+                    continue
                 # normalize image channels and scale the input image
+
                 img_scale = iaa.Scale({"height": inres[0], "width": inres[1]})
                 try:
                     image = img_scale.augment_image(image)
@@ -265,9 +271,14 @@ class DataGen(object):
                     print("image inres scale fail: " , imagefile, inres , image.shape, flush=True)
                     # if augmentation fails skip this image
                     continue
-
-
-                image = normalize_img(image)
+                #DEBUG
+                # im_j_after = image_with_joints(image, joint_list, colormap=LR_colormap)
+                # draw_images([im_j_before, im_j_after])
+                # image = normalize_img(image)
+                #DEBUG
+                # import matplotlib.pyplot as plt
+                # plt.imshow(normalize_img(im_j_after))
+                # plt.show()
 
                 train_input[batch_i, :, :, :] = image
 
@@ -275,11 +286,8 @@ class DataGen(object):
 
                 gt_heatmap[batch_i, :, :, :] = gt_hmp
 
-                #debug
-                # hmap_viz=np.sum(gt_hmp, axis=-1)
-                # import matplotlib.pyplot as plt
-                # plt.imshow(hmap_viz)
-                # plt.show()
+
+
 
                 #batch, joint, coord
                 #normalise joint coords
