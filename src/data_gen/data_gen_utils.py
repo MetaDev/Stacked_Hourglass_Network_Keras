@@ -153,7 +153,7 @@ class DataGen(object):
     def val_generator(self, batch_size, sigma=5):
         val_gen=self._generator(self.image_joints, batch_size, sigma, is_shuffle=False, with_meta=True)
         return val_gen
-    min_visible_joints=7
+    min_visible_joints=14
     min_resolution=32
     def _generator(self,image_joints, batch_size, sigma=5, is_shuffle=True,coord_regression=False, with_meta=False):
 
@@ -170,6 +170,7 @@ class DataGen(object):
         gt_coord = np.zeros(shape=(batch_size, N_JOINTS *2 ), dtype=np.float)
         if fl.DEBUG:
             image_joints=image_joints[:100]
+            self.min_visible_joints=7
 
         meta_info = []
         # create a batch of images and its heatmpas and yield it
@@ -262,8 +263,8 @@ class DataGen(object):
                 if (np.array(image.shape[0:2])< self.min_resolution).any() :
                     print("image too small after augmentation: ",imagefile,image.shape, flush=True )
                     continue
-                # normalize image channels and scale the input image
 
+                # normalize image channels and scale the input image
                 img_scale = iaa.Scale({"height": inres[0], "width": inres[1]})
                 try:
                     image = img_scale.augment_image(image)
@@ -271,23 +272,19 @@ class DataGen(object):
                     print("image inres scale fail: " , imagefile, inres , image.shape, flush=True)
                     # if augmentation fails skip this image
                     continue
+                image = normalize_img(image)
+
                 #DEBUG
                 # im_j_after = image_with_joints(image, joint_list, colormap=LR_colormap)
                 # draw_images([im_j_before, im_j_after])
-                # image = normalize_img(image)
                 #DEBUG
-                # import matplotlib.pyplot as plt
-                # plt.imshow(normalize_img(im_j_after))
-                # plt.show()
+
 
                 train_input[batch_i, :, :, :] = image
 
                 gt_hmp = generate_gtmap(joint_list, sigma, outres)
 
                 gt_heatmap[batch_i, :, :, :] = gt_hmp
-
-
-
 
                 #batch, joint, coord
                 #normalise joint coords
