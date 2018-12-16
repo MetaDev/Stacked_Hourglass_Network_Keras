@@ -223,7 +223,6 @@ class DataGen(object):
                         keypoints_on_images)
                     noop = lambda images, random_state, parents, hooks: images
                     seq = iaa.SomeOf(1, [
-                        # iaa.Sometimes(0.4, iaa.Scale(iap.Uniform(0.75,1.25))),
                         iaa.Sometimes(0.4, iaa.Affine(
                             scale={"x": (0.75, 1.25), "y": (0.75, 1.25)},
                             rotate=(-30, 30),
@@ -233,10 +232,10 @@ class DataGen(object):
                             mode=["edge"]
 
                         )),
-                        # iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
-                        # iaa.Sometimes(1,iaa.Sequential([iaa.Fliplr(1), iaa.Lambda(noop, flip_j)])),
-                        # iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
-                        # iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
+                        iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
+                        iaa.Sometimes(1,iaa.Sequential([iaa.Fliplr(1), iaa.Lambda(noop, flip_j)])),
+                        iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
+                        iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
                     ])
 
                     try:
