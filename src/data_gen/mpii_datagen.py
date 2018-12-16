@@ -172,3 +172,25 @@ class MPIIDataGen(object):
         flip_center[0] =  org_width - center[0]
 
         return flipimage, joints, flip_center
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    data_set = MPIIDataGen("../../data/mpii/mpii_annotations.json", "../../data/mpii/images",
+                           inres=(128,128), outres=(128,128), num_hgstack=2, is_train=True)
+    train_gen = data_set.generator(32, sigma=1, is_shuffle=True,
+                                   rot_flag=True, scale_flag=True, flip_flag=True)
+
+    for i, batch in enumerate(train_gen):
+        train_in, hmaps = batch
+        # # irst index is for the hourglass number
+        hmaps = np.array(hmaps[0])
+
+        fig, axes = plt.subplots(nrows=8, ncols=8)
+
+        for i,(image_in, hmap) in enumerate(zip(train_in, hmaps)):
+            hmap_all=np.sum(hmap,axis=-1)
+            axes.flat[i*2+1].imshow(hmap_all)
+            #matplot lib can work with images in the 0-1 range but not fully normalized
+            axes.flat[i*2].imshow(image_in+data_set.get_color_mean())
+        plt.show()
+
