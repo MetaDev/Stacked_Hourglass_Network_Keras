@@ -32,7 +32,7 @@ class HourglassNet(object):
         data_set=data_gen_class(os.path.join(data_path,data_gen_class.image_dir),
                                 os.path.join(data_path,data_gen_class.joint_file),
                                  self.inres, self.outres, self.num_hgstacks)
-        test_fract = 0.2
+        test_fract = 0.02
         train_gen, test_gen = data_set.tt_generator(batch_size, test_portion=test_fract)
         timestamp= str(datetime.datetime.now().strftime('%d_%m-%H_%M'))
         csvlogger = CSVLogger(
@@ -40,7 +40,7 @@ class HourglassNet(object):
         val_gen=data_set.val_generator(batch_size)
         model_logger = SaveCallBack(model_path,self)
         early_stop=keras.callbacks.EarlyStopping(monitor='val_loss',
-                              min_delta=0,
+                              min_delta=0.001,
                               patience=10,
                               verbose=1, mode='auto')
 
@@ -54,7 +54,7 @@ class HourglassNet(object):
 
         eval_logger = EvalCallBack(model_path,self,val_gen)
 
-        xcallbacks = [csvlogger,model_logger,early_stop,learning_rate_sched,tensorboard]
+        xcallbacks = [csvlogger,model_logger,learning_rate_sched,tensorboard]
 
         train_steps = (data_set.get_dataset_size() * (1 - test_fract)) // batch_size
         test_steps = (data_set.get_dataset_size() * (test_fract)) // batch_size

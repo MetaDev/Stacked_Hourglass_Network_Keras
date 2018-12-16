@@ -137,7 +137,7 @@ class DataGen(object):
         self.num_hgstack=num_hgstack
         self.image_dir=image_dir
         self.image_joints=self._load_image_joints()
-    def tt_generator(self, batch_size,sigma=5, test_portion=0.02, is_shuffle=True,coord_regression=False,with_meta=False):
+    def tt_generator(self, batch_size,sigma=1, test_portion=0.02, is_shuffle=True,coord_regression=False,with_meta=False):
         #choose random test fraction
         test_idx=np.random.choice(np.arange(self.get_dataset_size()),int(self.get_dataset_size()*test_portion),replace=False)
         train_idx=list(set(np.arange(self.get_dataset_size()))-set(test_idx))
@@ -214,7 +214,8 @@ class DataGen(object):
                 used."""
                 #DEBUG
 
-                im_j_before=image_with_joints(image,joint_list,colormap=LR_colormap)
+                # im_j_before=image_with_joints(image,joint_list,colormap=LR_colormap)
+
                 if fl.AUGMENT:
                     # augment image data, apply 2 of the augmentations
                     # the augmentation doesn't take into account that flipping switches the semantic meaning of left and right
