@@ -67,7 +67,11 @@ reasearch
 
 reduced architectures: mobilepose (resnet, mobilenetv2)
 
-read hourglass paper
+----------------------
+
+idea
+
+dropout at inference time and average prediction (bayesian)
 
 ------------------------
 CoreML

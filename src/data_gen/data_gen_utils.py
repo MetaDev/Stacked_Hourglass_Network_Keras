@@ -115,9 +115,7 @@ def apply_iaa_keypoints(iaa, keypoints, shape):
     return keypoints2pose(iaa.augment_keypoints([pose2keypoints(shape, keypoints)])[0])
 #TODO calculated on whole image dataset
 # mean = np.array([0.485, 0.456, 0.406])
-mean = np.array([0.4404, 0.4440, 0.4327], dtype=np.float)
 
-std = np.array([0.229, 0.224, 0.225])
 
 import tools.flags as fl
 N_JOINTS=14
@@ -232,10 +230,10 @@ class DataGen(object):
                             mode=["edge"]
 
                         )),
-                        iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
-                        iaa.Sometimes(1,iaa.Sequential([iaa.Fliplr(1), iaa.Lambda(noop, flip_j)])),
-                        iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
-                        iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
+                        # iaa.Sometimes(0.6, iaa.CropAndPad(percent=(-0.25, 0.25), pad_mode=["edge"], keep_size=False)),
+                        # iaa.Sometimes(0.2,iaa.Sequential([iaa.Fliplr(1), iaa.Lambda(noop, flip_j)])),
+                        # iaa.Sometimes(0.4, iaa.AdditiveGaussianNoise(scale=(0, 0.05 * 50))),
+                        # iaa.Sometimes(0.1, iaa.GaussianBlur(sigma=(0, 3.0)))
                     ])
 
                     try:
@@ -306,6 +304,9 @@ class DataGen(object):
 def read_img_file(img_file):
     return io.imread(img_file)
 
+mean = np.array([0.4404, 0.4440, 0.4327], dtype=np.float)
+
+std = np.array([0.229, 0.224, 0.225])
 def normalize_img(img_data):
     '''
     :param imgdata: image in 0 ~ 255
