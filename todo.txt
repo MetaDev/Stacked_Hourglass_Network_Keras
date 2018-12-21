@@ -8,6 +8,12 @@ tensorboard remote https://medium.com/algoscale/how-to-plot-the-model-training-i
 ------------------------------------
 data augmentation
 
+bounding box dataset
+http://parnec.nuaa.edu.cn/xtan/data/MPHB.html
+
+few shot 3d image augmentation
+https://www.youtube.com/watch?v=WYeo7QdWLHs&t=6s
+
 #  add other interesting augmentation as such that less keypoints are lost e.g. PerspectiveTransform
 # or contrary hide keypoints (using masks of other images) in image data with object to make model more robust
 

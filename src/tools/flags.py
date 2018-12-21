@@ -1,6 +1,6 @@
 
 
-DEBUG=True
+DEBUG=False
 AUGMENT=True
 
 print("Debug: ", DEBUG)

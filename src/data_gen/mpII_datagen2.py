@@ -48,14 +48,16 @@ def standardize_joints(joint_list):
 import os
 class MPII_dataset(DataGen):
     image_dir, joint_file = "mpii/images", "mpii/mpii_annotations.json"
-
+    #experimentally that's how many images are being passed after augmentation
+    def get_dataset_size(self):
+        return 8000
     def _load_image_joints(self):
         # load train or val annotation
         with open(self.joint_file) as anno_file:
             anno = json.load(anno_file)
             out = np.empty(len(anno), dtype=object)
 
-            image_joints = [(_anno['img_paths'], standardize_joints(np.array(_anno['joint_self']))) for _anno in anno]
+            image_joints = [(_anno['img_paths'], np.array(_anno['joint_self'])) for _anno in anno]
             out[:] = image_joints
         return out
 

@@ -118,7 +118,7 @@ def apply_iaa_keypoints(iaa, keypoints, shape):
 
 import matplotlib.pyplot as plt
 import tools.flags as fl
-N_JOINTS=14
+N_JOINTS=16
 
 def n_joints_visible(joint_list):
     return len([1 for joint in joint_list if joint[2]==1])
@@ -130,17 +130,17 @@ class DataGen(object):
         for i, batch in enumerate(train_gen):
             train_in, hmaps, meta = batch
             # # irst index is for the hourglass number
-            hmaps = np.array(hmaps[0])
-
-            fig, axes = plt.subplots(nrows=8, ncols=8)
-
-            for i, (image_in, hmap) in enumerate(zip(train_in, hmaps)):
-                hmap_all = np.sum(hmap, axis=-1)
-                axes.flat[i * 2 + 1].imshow(hmap_all)
-                # matplot lib can work with images in the 0-1 range but not fully normalized
-                axes.flat[i * 2].imshow(image_in + mean)
-            plt.show()
-            cv2.waitKey(0)
+            # hmaps = np.array(hmaps[0])
+            #
+            # fig, axes = plt.subplots(nrows=8, ncols=8)
+            #
+            # for i, (image_in, hmap) in enumerate(zip(train_in, hmaps)):
+            #     hmap_all = np.sum(hmap, axis=-1)
+            #     axes.flat[i * 2 + 1].imshow(hmap_all)
+            #     # matplot lib can work with images in the 0-1 range but not fully normalized
+            #     axes.flat[i * 2].imshow(image_in + mean)
+            # plt.show()
+            print(i)
 
     def _load_image_joints(self):
         pass

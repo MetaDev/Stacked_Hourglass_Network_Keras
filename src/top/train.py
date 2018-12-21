@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
         xnet.train_old(epochs=args.epochs, model_path=args.model_path, batch_size=args.batch_size)
     elif data==1:
-        xnet = HourglassNet(num_classes=14, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
+        xnet = HourglassNet(num_classes=16, num_hgstacks=args.num_stack, inres=(256, 256), outres=(64, 64))
         xnet.build_model()
         xnet.train(MPII_dataset,epochs=args.epochs, model_path=args.model_path, data_path=args.data_path,
                        batch_size=args.batch_size)
