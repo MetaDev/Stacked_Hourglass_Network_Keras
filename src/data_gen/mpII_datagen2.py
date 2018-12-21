@@ -61,27 +61,11 @@ class MPII_dataset(DataGen):
 
 
 
-import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
     image_dir, joint_file = "../../data/mpii/images", "../../data/mpii/mpii_annotations.json"
     data_set = MPII_dataset(image_dir, joint_file, [128, 128], [128, 128], 1)
-    train_gen,test_gen = data_set.tt_generator(32,with_meta=True)
-
-    for i, batch in enumerate(train_gen):
-        train_in, hmaps,meta = batch
-        # # irst index is for the hourglass number
-        hmaps = np.array(hmaps[0])
-
-        fig, axes = plt.subplots(nrows=8, ncols=8)
-
-        for i,(image_in, hmap) in enumerate(zip(train_in, hmaps)):
-            hmap_all=np.sum(hmap,axis=-1)
-            axes.flat[i*2+1].imshow(hmap_all)
-            #matplot lib can work with images in the 0-1 range but not fully normalized
-            axes.flat[i*2].imshow(image_in+mean)
-        plt.show()
-        cv2.waitKey(0)
+    data_set.test_visualise()
 
 
 

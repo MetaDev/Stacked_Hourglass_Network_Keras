@@ -62,7 +62,7 @@ def main_video(model_json, model_weights, num_stack, num_class, videofile, conft
                     _conf = 0.0
                 else:
                     _conf = _kp[2]
-                mkps.append((_kp[0] * scale[1] * xnet.output_scale, _kp[1] * scale[0] * xnet.output_scale, _conf))
+                mkps.append((_kp[0] * scale[1] * xnet.output_scale, _kp[1] * scale[0] * xnet.output_scale   , _conf))
 
             framejoints = render_joints(frame, mkps, confth)
 

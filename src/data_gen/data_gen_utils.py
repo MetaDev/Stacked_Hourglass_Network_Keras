@@ -116,13 +116,32 @@ def apply_iaa_keypoints(iaa, keypoints, shape):
 #TODO calculated on whole image dataset
 # mean = np.array([0.485, 0.456, 0.406])
 
-
+import matplotlib.pyplot as plt
 import tools.flags as fl
 N_JOINTS=14
 
 def n_joints_visible(joint_list):
     return len([1 for joint in joint_list if joint[2]==1])
 class DataGen(object):
+
+    def test_visualise(self):
+        train_gen, test_gen = self.tt_generator(32, with_meta=True)
+
+        for i, batch in enumerate(train_gen):
+            train_in, hmaps, meta = batch
+            # # irst index is for the hourglass number
+            hmaps = np.array(hmaps[0])
+
+            fig, axes = plt.subplots(nrows=8, ncols=8)
+
+            for i, (image_in, hmap) in enumerate(zip(train_in, hmaps)):
+                hmap_all = np.sum(hmap, axis=-1)
+                axes.flat[i * 2 + 1].imshow(hmap_all)
+                # matplot lib can work with images in the 0-1 range but not fully normalized
+                axes.flat[i * 2].imshow(image_in + mean)
+            plt.show()
+            cv2.waitKey(0)
+
     def _load_image_joints(self):
         pass
     def get_dataset_size(self):
@@ -153,7 +172,7 @@ class DataGen(object):
         return val_gen
     min_visible_joints=14
     min_resolution=32
-    def _generator(self,image_joints, batch_size, sigma=5, is_shuffle=True,coord_regression=False, with_meta=False):
+    def _generator(self,image_joints, batch_size, sigma=1, is_shuffle=True,coord_regression=False, with_meta=False):
 
         '''
         Input:  batch_size * inres  * Channel (3)
@@ -171,7 +190,7 @@ class DataGen(object):
             self.min_visible_joints=7
 
         meta_info = []
-        # create a batch of images and its heatmpas and yield it
+        # create a batch of images and its heatmaps and yield it
         while True:
             if is_shuffle:
                 np.random.shuffle(image_joints)
@@ -179,11 +198,13 @@ class DataGen(object):
             for image_joint in image_joints:
                 batch_i = _i % batch_size
                 imagefile, joint_list = image_joint
+
                 #if insufficient joints are visible don't use image
                 if n_joints_visible(joint_list) < self.min_visible_joints:
                     continue
                 image = read_img_file(os.path.join(self.image_dir, imagefile))
-                #cehck image resolution
+
+                joint_list = np.copy(joint_list)
 
                 box= get_bounding_box(joint_list, image)
 
@@ -251,7 +272,8 @@ class DataGen(object):
                 #DEBUG
                 # im_j_after=image_with_joints(image, joint_list, colormap=LR_colormap)
                 # draw_images([im_j_before,im_j_after])
-
+                if n_joints_visible(joint_list) < self.min_visible_joints:
+                    continue
                 #scale keypoints to output res
                 kp_scale = iaa.Scale({"height": outres[0], "width": outres[1]})
 
@@ -314,3 +336,4 @@ def normalize_img(img_data):
     '''
 
     return ((img_data / 255.0) - mean)
+

@@ -60,7 +60,8 @@ class EvalCallBack(keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         self.run_eval(epoch)
-
+import git
+import time
 
 class SaveCallBack(keras.callbacks.Callback):
 
@@ -78,8 +79,21 @@ class SaveCallBack(keras.callbacks.Callback):
         # save model to json
         if epoch == 0:
             jsonfile = os.path.join(self.foldpath, "net_arch.json")
+            info_file = os.path.join(self.foldpath,"train_info.json")
             with open(jsonfile, 'w') as f:
                 f.write(self.hourglass.model.to_json())
+            #write commit version
+            repo = git.Repo(path="../..", search_parent_directories=True)
+            sha = repo.head.object.hexsha
+            message = repo.head.commit.message
+            time=repo.head.commit.committed_date
+            time=time.strftime("%a, %d %b %Y %H:%M", time.gmtime(time))
+
+            with open(info_file,"w") as f:
+                f.write("last git commit, GMT time:"+ str(time)+" ;message; " + message)
+                f.write("hash: "+ str(sha))
+
+
 
         # save weights
         modelName = os.path.join(self.foldpath, "weights_epoch" + str(epoch) + ".h5")

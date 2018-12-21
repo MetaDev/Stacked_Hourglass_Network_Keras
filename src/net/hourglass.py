@@ -28,11 +28,11 @@ class HourglassNet(object):
         print("Model nr. params: ", self.model.count_params())
 
 
-    def train(self,data_gen_class,batch_size,model_path,data_path, epochs,debug=True):
+    def train(self,data_gen_class,batch_size,model_path,data_path, epochs):
         data_set=data_gen_class(os.path.join(data_path,data_gen_class.image_dir),
                                 os.path.join(data_path,data_gen_class.joint_file),
                                  self.inres, self.outres, self.num_hgstacks)
-        test_fract = 0.01
+        test_fract = 0.001
         train_gen, test_gen = data_set.tt_generator(batch_size, test_portion=test_fract)
         timestamp= str(datetime.datetime.now().strftime('%d_%m-%H_%M'))
         csvlogger = CSVLogger(
@@ -54,16 +54,16 @@ class HourglassNet(object):
 
         eval_logger = EvalCallBack(model_path,self,val_gen)
 
-        xcallbacks = [csvlogger,model_logger,learning_rate_sched]
+        xcallbacks = [csvlogger,model_logger]
 
         train_steps = (data_set.get_dataset_size() * (1 - test_fract)) // batch_size
         test_steps = (data_set.get_dataset_size() * (test_fract)) // batch_size
         #DEBUG
         if fl.DEBUG:
-            train_steps,test_steps=10,10
+            train_steps,test_steps=1,1
             epochs=10
         self.model.fit_generator(generator=train_gen, steps_per_epoch=train_steps,
-                                 validation_data=test_gen, validation_steps=test_steps,
+                                 # validation_data=test_gen, validation_steps=test_steps,
                                  epochs=epochs, callbacks=xcallbacks)
 
 
@@ -108,7 +108,6 @@ class HourglassNet(object):
         img_data = dg.normalize_img(img_data)
 
         input = img_data[np.newaxis, :, :, :]
-        #WARNING this code only works of there are more than 1 stack
         out = self.model.predict(input)
         if self.num_hgstacks > 1:
             out=out[-1]

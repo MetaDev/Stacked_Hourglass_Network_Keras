@@ -35,9 +35,6 @@ class LSP_dataset(DataGen):
 if __name__ == "__main__":
     image_dir, joint_file = "../../data/lspet/images", "../../data/lspet/joints.mat"
     data_set = LSP_dataset(image_dir, joint_file, [128,128], [128,128], 1)
-    train_gen,test_gen = data_set.tt_generator(100)
-    for i,_ in enumerate(train_gen):
-        if i==2:
-            break
+    data_set.test_visualise()
 
 
