@@ -63,8 +63,8 @@ class EvalCallBack(keras.callbacks.Callback):
 import git
 import time
 
-class SaveCallBack(keras.callbacks.Callback):
 
+class SaveCallBack(keras.callbacks.Callback):
     def __init__(self, foldpath, hourglass):
         self.hourglass = hourglass
         self.foldpath=foldpath
@@ -86,11 +86,11 @@ class SaveCallBack(keras.callbacks.Callback):
             repo = git.Repo(path="../..", search_parent_directories=True)
             sha = repo.head.object.hexsha
             message = repo.head.commit.message
-            time=repo.head.commit.committed_date
-            time=time.strftime("%a, %d %b %Y %H:%M", time.gmtime(time))
+            commit_time=repo.head.commit.committed_date
+            commit_time=time.strftime("%a, %d %b %Y %H:%M", time.gmtime(commit_time))
 
             with open(info_file,"w") as f:
-                f.write("last git commit, GMT time:"+ str(time)+" ;message; " + message)
+                f.write("last git commit, GMT time:"+ str(commit_time)+" ;message; " + message)
                 f.write("hash: "+ str(sha))
 
 
